@@ -8,9 +8,15 @@
  * Date formatting has been consolidated into `shared/dates.ts`.
  * Re-export for backwards compatibility with existing imports.
  */
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import DOMPurify from "dompurify";
 import { formatQuotedDate } from "shared/dates";
 import type { Attachment } from "~/types";
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}
 
 export {
 	formatListDate,
@@ -158,7 +164,7 @@ export function buildQuotedReplyBlock(
 ): string {
 	if (!body) return "";
 	const formattedDate = formatComposeDate(dateStr);
-	
+
 	// HTML-escape sender to prevent <john@example.com> from disappearing as a tag
 	const escapedSender = escapeHtml(sender);
 
