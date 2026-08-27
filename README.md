@@ -47,7 +47,7 @@ https://github.com/cloudflare/agentic-inbox/issues/4#issuecomment-4269118513
 
 - **Frontend:** React 19, React Router v7, Tailwind CSS, Zustand, TipTap, `@cloudflare/kumo`
 - **Backend:** Hono, Cloudflare Workers, Durable Objects (SQLite), R2, Email Routing
-- **AI Agent:** Cloudflare Agents SDK (`AIChatAgent`), AI SDK v6, Workers AI (`@cf/moonshotai/kimi-k2.5`), `react-markdown` + `remark-gfm`
+- **AI Agent:** Cloudflare Agents SDK (`AIChatAgent`), AI SDK v6, Workers AI (`@cf/zai-org/glm-4.7-flash`), `react-markdown` + `remark-gfm`
 - **Auth:** Cloudflare Access JWT validation (required outside local development)
 
 ## Getting Started
@@ -77,6 +77,39 @@ npm run deploy
 - [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/) configured for deployed/shared environments (required in production)
 
 Any user who passes the shared Cloudflare Access policy can access all mailboxes in this app by design. This includes the MCP server at `/mcp` -- external AI tools (Claude Code, Cursor, etc.) connected via MCP can operate on any mailbox by passing a `mailboxId` parameter. There is no per-mailbox authorization; the Cloudflare Access policy is the single trust boundary.
+
+## Private transactional send (RPC)
+
+Other Cloudflare Workers can send outbound mail through this Worker **without** calling the public HTTP API or passing a Cloudflare Access JWT. Auth and similar consumers use a **service binding** to the `EmailMailerEntrypoint` entrypoint, which validates the `from` address and sends via the `send_email` binding (`env.EMAIL`).
+
+**Entrypoint:** `EmailMailerEntrypoint` (exported from `workers/app.ts`)
+
+**Consumer wrangler snippet** (same Cloudflare account):
+
+```jsonc
+"services": [
+  {
+    "binding": "EMAIL_RPC",
+    "service": "agentic-inbox",
+    "entrypoint": "EmailMailerEntrypoint"
+  }
+]
+```
+
+Call from the consumer with `@ianmenethil/zp-emails/send`:
+
+```ts
+import { sendEmail, rpcTransport } from "@ianmenethil/zp-emails/send";
+
+await sendEmail(
+  { to, from, subject, html, text },
+  rpcTransport(env.EMAIL_RPC),
+);
+```
+
+**Allowed `from` addresses (RPC allowlist):** `noreply@zenithpayments.support`, `no-reply@zenithpayments.support` (see `workers/lib/rpc-send-policy.ts`). This list is separate from mailbox UI `validateSender()` rules.
+
+**Access ≠ RPC auth:** Cloudflare Access protects the Agent Mailbox UI, API, and MCP over HTTP. Service-binding RPC is Worker-to-Worker inside your account and does not use Access JWTs. Deploy `agentic-inbox` with `EmailMailerEntrypoint` **before** binding consumers (e.g. Auth `EMAIL_RPC`).
 
 ## Architecture
 
