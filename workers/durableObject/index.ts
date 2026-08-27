@@ -89,6 +89,29 @@ interface EmailData {
 	raw_headers?: string | null;
 }
 
+/** List-row shape returned by getEmails / getThreadedEmails (explicit for RPC typing). */
+interface EmailListItem {
+	id: string;
+	subject: string | null;
+	sender: string | null;
+	recipient: string | null;
+	cc: string | null;
+	bcc: string | null;
+	date: string | null;
+	read: boolean;
+	starred: boolean;
+	in_reply_to: string | null;
+	email_references: string | null;
+	thread_id: string | null;
+	folder_id: string | null;
+	snippet: string;
+	thread_count?: number;
+	thread_unread_count?: number;
+	participants?: string;
+	needs_reply?: boolean;
+	has_draft?: boolean;
+}
+
 interface AttachmentData {
 	id: string;
 	email_id: string;
@@ -97,6 +120,34 @@ interface AttachmentData {
 	size: number;
 	content_id?: string | null;
 	disposition?: string | null;
+}
+
+
+function toEmailListItem(row: Record<string, SqlStorageValue>): EmailListItem {
+	const item: EmailListItem = {
+		id: String(row.id),
+		subject: row.subject == null ? null : String(row.subject),
+		sender: row.sender == null ? null : String(row.sender),
+		recipient: row.recipient == null ? null : String(row.recipient),
+		cc: row.cc == null ? null : String(row.cc),
+		bcc: row.bcc == null ? null : String(row.bcc),
+		date: row.date == null ? null : String(row.date),
+		read: !!row.read,
+		starred: !!row.starred,
+		in_reply_to: row.in_reply_to == null ? null : String(row.in_reply_to),
+		email_references: row.email_references == null ? null : String(row.email_references),
+		thread_id: row.thread_id == null ? null : String(row.thread_id),
+		folder_id: row.folder_id == null ? null : String(row.folder_id),
+		snippet: row.snippet == null ? "" : String(row.snippet),
+	};
+	if ("thread_count" in row) {
+		item.thread_count = Number(row.thread_count || 1);
+		item.thread_unread_count = Number(row.thread_unread_count || 0);
+		item.participants = String(row.participants || row.sender || "");
+	}
+	if ("needs_reply" in row) item.needs_reply = !!row.needs_reply;
+	if ("has_draft" in row) item.has_draft = !!row.has_draft;
+	return item;
 }
 
 export class MailboxDO extends DurableObject<Env> {
@@ -111,7 +162,7 @@ export class MailboxDO extends DurableObject<Env> {
 
 	// ── Email CRUD (Drizzle) ───────────────────────────────────────
 
-	async getEmails(options: GetEmailsOptions = {}) {
+	async getEmails(options: GetEmailsOptions = {}): Promise<EmailListItem[]> {
 		const {
 			folder,
 			thread_id,
@@ -179,7 +230,7 @@ export class MailboxDO extends DurableObject<Env> {
 	/**
 	 * Count total emails matching the given filters (for pagination).
 	 */
-	async countEmails(options: { folder?: string; thread_id?: string } = {}) {
+	async countEmails(options: { folder?: string; thread_id?: string } = {}): Promise<number> {
 		const { folder, thread_id } = options;
 		const conditions: string[] = [];
 		const params: (string | number)[] = [];
@@ -210,7 +261,7 @@ export class MailboxDO extends DurableObject<Env> {
 
 	// ── Threaded queries (raw SQL — too complex for Drizzle's builder) ──
 
-	async getThreadedEmails(options: GetEmailsOptions = {}) {
+	async getThreadedEmails(options: GetEmailsOptions = {}): Promise<EmailListItem[]> {
 		const {
 			folder,
 			page = 1,
@@ -278,14 +329,7 @@ export class MailboxDO extends DurableObject<Env> {
 			);
 
 			const rows = [...result];
-			return rows.map((row: any) => ({
-				...row,
-				read: !!row.read,
-				starred: !!row.starred,
-				thread_count: row.thread_count || 1,
-				thread_unread_count: row.thread_unread_count || 0,
-				participants: row.participants || row.sender,
-			}));
+			return rows.map(toEmailListItem);
 		}
 
 		// Non-draft folders: full threading logic
@@ -373,23 +417,14 @@ export class MailboxDO extends DurableObject<Env> {
 		);
 
 		const rows = [...result];
-		return rows.map((row: any) => ({
-			...row,
-			read: !!row.read,
-			starred: !!row.starred,
-			thread_count: row.thread_count || 1,
-			thread_unread_count: row.thread_unread_count || 0,
-			participants: row.participants || row.sender,
-			needs_reply: !!row.needs_reply,
-			has_draft: !!row.has_draft,
-		}));
+		return rows.map(toEmailListItem);
 	}
 
 	/**
 	 * Count threaded conversations in a folder (for pagination).
 	 * Returns the number of conversation groups, not individual emails.
 	 */
-	async countThreadedEmails(folder: string) {
+	async countThreadedEmails(folder: string): Promise<number> {
 		const isDraftFolder = folder === Folders.DRAFT;
 
 		if (isDraftFolder) {
@@ -466,38 +501,39 @@ export class MailboxDO extends DurableObject<Env> {
 	 */
 	async getThreadEmails(threadId: string) {
 		const emailRows = [
-			...this.ctx.storage.sql.exec(
+			...this.ctx.storage.sql.exec<Record<string, SqlStorageValue>>(
 				`SELECT * FROM emails WHERE thread_id = ?1 ORDER BY date ASC`,
 				threadId,
 			),
-		] as any[];
+		];
 
 		if (emailRows.length === 0) return [];
 
-		const emailIds = emailRows.map((e) => e.id as string);
+		const emailIds = emailRows.map((e) => String(e.id));
 
 		// Batch-fetch all attachments for the thread in a single query
 		const placeholders = emailIds.map((_, i) => `?${i + 1}`).join(",");
 		const attachmentRows = [
-			...this.ctx.storage.sql.exec(
+			...this.ctx.storage.sql.exec<Record<string, SqlStorageValue>>(
 				`SELECT * FROM attachments WHERE email_id IN (${placeholders})`,
 				...emailIds,
 			),
-		] as any[];
+		];
 
 		// Group attachments by email_id
-		const attachmentsByEmail = new Map<string, any[]>();
+		const attachmentsByEmail = new Map<string, Record<string, SqlStorageValue>[]>();
 		for (const att of attachmentRows) {
-			const list = attachmentsByEmail.get(att.email_id) || [];
+			const emailId = String(att.email_id);
+			const list = attachmentsByEmail.get(emailId) || [];
 			list.push(att);
-			attachmentsByEmail.set(att.email_id, list);
+			attachmentsByEmail.set(emailId, list);
 		}
 
 		return emailRows.map((email) => ({
 			...email,
 			read: !!email.read,
 			starred: !!email.starred,
-			attachments: attachmentsByEmail.get(email.id) || [],
+			attachments: attachmentsByEmail.get(String(email.id)) || [],
 		}));
 	}
 
@@ -694,7 +730,7 @@ export class MailboxDO extends DurableObject<Env> {
 		return { conditions, params };
 	}
 
-	async searchEmails(options: SearchFilterOptions & { page?: number; limit?: number }) {
+	async searchEmails(options: SearchFilterOptions & { page?: number; limit?: number }): Promise<EmailListItem[]> {
 		const { page = 1, limit: rawLimit = 25 } = options;
 		const limit = Math.min(Math.max(rawLimit, 1), 100);
 		const { conditions, params } = this.#buildSearchConditions(options, "e");
@@ -714,18 +750,14 @@ export class MailboxDO extends DurableObject<Env> {
 			ORDER BY e.date DESC LIMIT ?${params.length + 1} OFFSET ?${params.length + 2}`;
 		params.push(limit, offset);
 
-		const result = this.ctx.storage.sql.exec(query, ...params);
-		return [...result].map((row: any) => ({
-			...row,
-			read: !!row.read,
-			starred: !!row.starred,
-		}));
+		const result = this.ctx.storage.sql.exec<Record<string, SqlStorageValue>>(query, ...params);
+		return [...result].map((row) => toEmailListItem(row));
 	}
 
 	/**
 	 * Count total search results matching the given filters (for pagination).
 	 */
-	async countSearchResults(options: SearchFilterOptions) {
+	async countSearchResults(options: SearchFilterOptions): Promise<number> {
 		const { conditions, params } = this.#buildSearchConditions(options);
 
 		const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -747,7 +779,12 @@ export class MailboxDO extends DurableObject<Env> {
 
 		if (!normalized) return null;
 
-		const result = this.ctx.storage.sql.exec(
+		const result = this.ctx.storage.sql.exec<{
+			thread_id: string;
+			subject: string | null;
+			senders: string | null;
+			recipients: string | null;
+		}>(
 			`SELECT thread_id, subject,
 			        GROUP_CONCAT(DISTINCT LOWER(sender)) as senders,
 			        GROUP_CONCAT(DISTINCT LOWER(recipient)) as recipients
@@ -763,22 +800,22 @@ export class MailboxDO extends DurableObject<Env> {
 		const normalizedSender = senderAddress?.toLowerCase().trim();
 
 		for (const row of result) {
-			const rowSubject = String((row as any).subject || "")
+			const rowSubject = String(row.subject || "")
 				.replace(/^(?:(?:re|fwd?|fw|aw|wg|r[eé]f|sv)\s*:\s*)+/i, "")
 				.trim()
 				.toLowerCase();
 			if (rowSubject !== normalized) continue;
 
 			if (normalizedSender) {
-				const threadSenders = String((row as any).senders || "");
-				const threadRecipients = String((row as any).recipients || "");
+				const threadSenders = String(row.senders || "");
+				const threadRecipients = String(row.recipients || "");
 				const allParticipants = `${threadSenders},${threadRecipients}`;
 				if (!allParticipants.includes(normalizedSender)) {
 					continue;
 				}
 			}
 
-			return String((row as any).thread_id);
+			return String(row.thread_id);
 		}
 		return null;
 	}

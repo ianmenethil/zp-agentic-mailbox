@@ -11,24 +11,10 @@ import { createMiddleware } from "hono/factory";
 import type { MailboxDO } from "../durableObject";
 import type { Env } from "../types";
 
-/**
- * RPC surface for MailboxDO.
- * Prefer this over DurableObjectStub<MailboxDO> — that generic makes Hono/tsc
- * hit TS2589 (excessively deep instantiation) when serializing RPC results.
- * Method returns are widened to `any` for the same reason.
- */
-export type MailboxStub = {
-	[K in keyof MailboxDO as MailboxDO[K] extends (...args: never[]) => unknown
-		? K
-		: never]: MailboxDO[K] extends (...args: infer A) => unknown
-		? (...args: A) => Promise<any>
-		: never;
-};
-
 export type MailboxContext = {
 	Bindings: Env;
 	Variables: {
-		mailboxStub: MailboxStub;
+		mailboxStub: DurableObjectStub<MailboxDO>;
 	};
 };
 
@@ -47,7 +33,7 @@ export const requireMailbox = createMiddleware<MailboxContext>(async (c, next) =
 	// Instantiate DO stub
 	const ns = c.env.MAILBOX;
 	const id = ns.idFromName(mailboxId);
-	const stub = ns.get(id) as unknown as MailboxStub;
+	const stub = ns.get(id);
 
 	c.set("mailboxStub", stub);
 	
