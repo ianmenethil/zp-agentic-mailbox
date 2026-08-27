@@ -1,0 +1,24 @@
+# Blocks push if Cloudflare-style checks would fail.
+# Install hooks: pnpm install  (runs `prepare` → lefthook install)
+
+pre-push:
+  parallel: false
+  commands:
+    frozen-lockfile:
+      run: pnpm install --frozen-lockfile
+    test-rpc:
+      run: pnpm run test:rpc
+    typecheck:
+      run: pnpm run typecheck
+    build:
+      run: pnpm run build
+
+pre-commit:
+  parallel: true
+  commands:
+    package-json-valid:
+      glob: "package.json"
+      run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
+    workspace-yaml-present:
+      glob: "{pnpm-workspace.yaml,pnpm-lock.yaml,package.json}"
+      run: test -f pnpm-lock.yaml && test -f pnpm-workspace.yaml

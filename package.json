@@ -3,6 +3,7 @@
 	"private": true,
 	"license": "Apache-2.0",
 	"type": "module",
+	"packageManager": "pnpm@11.24.0",
 	"cloudflare": {
 		"label": "Agentic Inbox",
 		"products": [
@@ -26,7 +27,9 @@
 		"typecheck": "pnpm run cf-typegen && react-router typegen && tsc -b",
 		"test:rpc-policy": "tsx --test workers/lib/rpc-send-policy.test.ts",
 		"test:email-mailer": "tsx --test workers/entrypoints/email-mailer.entrypoint.test.ts",
-		"test:rpc": "tsx --test workers/lib/rpc-send-policy.test.ts workers/entrypoints/email-mailer.entrypoint.test.ts"
+		"test:rpc": "tsx --test workers/lib/rpc-send-policy.test.ts workers/entrypoints/email-mailer.entrypoint.test.ts",
+		"prepare": "lefthook install",
+		"check": "pnpm install --frozen-lockfile && pnpm run test:rpc && pnpm run typecheck && pnpm run build"
 	},
 	"dependencies": {
 		"@ai-sdk/react": "^3.0.0",
@@ -61,7 +64,6 @@
 		"zod": "^4.4.3",
 		"zustand": "^5.0.15"
 	},
-		"packageManager": "pnpm@11.24.0",
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.54.0",
 		"@cloudflare/workers-types": "^5.20260827.1",
@@ -71,6 +73,7 @@
 		"@types/node": "^20.19.43",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.5",
+		"lefthook": "^2.0.0",
 		"tailwindcss": "^4.3.3",
 		"tsx": "^4.20.5",
 		"typescript": "^5.9.3",
