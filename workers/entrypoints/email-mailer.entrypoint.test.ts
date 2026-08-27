@@ -11,32 +11,68 @@ const baseMessage: EmailMessage = {
 	html: "<p>Hi</p>",
 };
 
-function makeEnv(sendImpl: SendEmail["send"]): Env {
+type SentCreateArgs = {
+	folder: string;
+	email: { sender: string; recipient: string; subject: string; body: string };
+};
+
+function makeEnv(
+	sendImpl: SendEmail["send"],
+	opts: {
+		defaultMailbox?: string;
+		onCreateEmail?: (args: SentCreateArgs) => void;
+		createEmailThrows?: boolean;
+	} = {},
+): Env {
+	const createEmail = async (folder: string, email: SentCreateArgs["email"]) => {
+		if (opts.createEmailThrows) throw new Error("DO write failed");
+		opts.onCreateEmail?.({ folder, email });
+	};
+
 	return {
 		EMAIL: { send: sendImpl },
-	} as Env;
+		DEFAULT_MAILBOX: opts.defaultMailbox ?? "inbox@zenithpayments.support",
+		MAILBOX: {
+			idFromName: (name: string) => ({ name }),
+			get: () => ({ createEmail }),
+		},
+	} as unknown as Env;
 }
 
 describe("handleRpcSend", () => {
-	it("allows listed from and returns messageId", async () => {
+	it("allows listed from, sends, and saves a Sent copy on DEFAULT_MAILBOX", async () => {
 		let called = false;
-		const env = makeEnv(async () => {
-			called = true;
-			return { messageId: "msg_123" };
-		});
+		const saved: SentCreateArgs[] = [];
+		const env = makeEnv(
+			async () => {
+				called = true;
+				return { messageId: "msg_123" };
+			},
+			{ onCreateEmail: (args) => saved.push(args) },
+		);
 
 		const result = await handleRpcSend(env, baseMessage);
 
 		assert.equal(called, true);
 		assert.deepEqual(result, { ok: true, data: { messageId: "msg_123" } });
+		assert.equal(saved.length, 1);
+		assert.equal(saved[0]?.folder, "sent");
+		assert.equal(saved[0]?.email.sender, "noreply@zenithpayments.support");
+		assert.equal(saved[0]?.email.recipient, "user@example.com");
+		assert.equal(saved[0]?.email.subject, "Hello");
+		assert.equal(saved[0]?.email.body, "<p>Hi</p>");
 	});
 
-	it("rejects disallowed from without calling EMAIL", async () => {
+	it("rejects disallowed from without calling EMAIL or writing Sent", async () => {
 		let called = false;
-		const env = makeEnv(async () => {
-			called = true;
-			return { messageId: "msg_123" };
-		});
+		let created = false;
+		const env = makeEnv(
+			async () => {
+				called = true;
+				return { messageId: "msg_123" };
+			},
+			{ onCreateEmail: () => { created = true; } },
+		);
 
 		const result = await handleRpcSend(env, {
 			...baseMessage,
@@ -44,6 +80,7 @@ describe("handleRpcSend", () => {
 		});
 
 		assert.equal(called, false);
+		assert.equal(created, false);
 		assert.equal(result.ok, false);
 		if (!result.ok) {
 			assert.equal(result.status, 403);
@@ -51,17 +88,32 @@ describe("handleRpcSend", () => {
 		}
 	});
 
-	it("maps sendEmail failures to 502", async () => {
-		const env = makeEnv(async () => {
-			throw new Error("delivery failed");
-		});
+	it("maps sendEmail failures to 502 without writing Sent", async () => {
+		let created = false;
+		const env = makeEnv(
+			async () => {
+				throw new Error("delivery failed");
+			},
+			{ onCreateEmail: () => { created = true; } },
+		);
 
 		const result = await handleRpcSend(env, baseMessage);
 
+		assert.equal(created, false);
 		assert.equal(result.ok, false);
 		if (!result.ok) {
 			assert.equal(result.status, 502);
 			assert.equal(result.detail, "delivery failed");
 		}
+	});
+
+	it("still returns ok when Sent copy fails after delivery", async () => {
+		const env = makeEnv(
+			async () => ({ messageId: "msg_456" }),
+			{ createEmailThrows: true },
+		);
+
+		const result = await handleRpcSend(env, baseMessage);
+		assert.deepEqual(result, { ok: true, data: { messageId: "msg_456" } });
 	});
 });
