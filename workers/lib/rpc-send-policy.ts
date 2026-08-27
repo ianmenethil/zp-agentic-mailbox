@@ -1,5 +1,6 @@
 export const DEFAULT_RPC_ALLOWED_FROM = [
 	"noreply@zenithpayments.support",
+	"no-reply@zenithpayments.support",
 ] as const;
 
 export function normalizeFromEmail(

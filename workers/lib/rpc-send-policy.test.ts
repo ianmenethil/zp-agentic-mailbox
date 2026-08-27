@@ -15,11 +15,17 @@ describe("rpc-send-policy", () => {
 	});
 
 	it("allows listed senders", () => {
-		assert.doesNotThrow(() =>
-			assertRpcSenderAllowed("noreply@zenithpayments.support", [
-				"noreply@zenithpayments.support",
-			]),
-		);
+		for (const address of [
+			"noreply@zenithpayments.support",
+			"no-reply@zenithpayments.support",
+		]) {
+			assert.doesNotThrow(() =>
+				assertRpcSenderAllowed(address, [
+					"noreply@zenithpayments.support",
+					"no-reply@zenithpayments.support",
+				]),
+			);
+		}
 	});
 
 	it("rejects mailbox-style unlisted senders", () => {
