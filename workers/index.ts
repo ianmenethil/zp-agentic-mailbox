@@ -89,7 +89,8 @@ app.get("/api/v1/config", (c) => {
 	const domainsRaw = c.env.DOMAINS || "";
 	const domains = domainsRaw.split(",").map((d) => d.trim()).filter(Boolean);
 	const emailAddresses = c.env.EMAIL_ADDRESSES ?? [];
-	return c.json({ domains, emailAddresses });
+	const defaultMailbox = (c.env.DEFAULT_MAILBOX || "").trim().toLowerCase() || null;
+	return c.json({ domains, emailAddresses, defaultMailbox });
 });
 
 // -- Mailboxes ------------------------------------------------------
@@ -148,13 +149,17 @@ app.get("/api/v1/mailboxes/:mailboxId/emails", async (c: AppContext) => {
 	const threaded = boolQuery(c, "threaded");
 	const page = intQuery(c, "page");
 	const limit = intQuery(c, "limit");
-	const sortColumn = c.req.query("sortColumn") as any;
+	const sortColumnRaw = c.req.query("sortColumn");
+	const allowedSort = ["id", "subject", "sender", "recipient", "date", "read", "starred"] as const;
+	const sortColumn = allowedSort.includes(sortColumnRaw as (typeof allowedSort)[number])
+		? (sortColumnRaw as (typeof allowedSort)[number])
+		: undefined;
 	const sortDirection = c.req.query("sortDirection") as "ASC" | "DESC" | undefined;
 	const stub = c.var.mailboxStub;
 
 	if (threaded && folder) {
-		const emails = await (stub as any).getThreadedEmails({ folder, page, limit });
-		const totalCount = await (stub as any).countThreadedEmails(folder);
+		const emails = await stub.getThreadedEmails({ folder, page, limit });
+		const totalCount = await stub.countThreadedEmails(folder);
 		return c.json({ emails, totalCount });
 	}
 	const emails = await stub.getEmails({ folder, thread_id, page, limit, sortColumn, sortDirection });
@@ -180,7 +185,7 @@ app.post("/api/v1/mailboxes/:mailboxId/emails", async (c: AppContext) => {
 
 	const { messageId, outgoingMessageId } = generateMessageId(fromDomain);
 	const stub = c.var.mailboxStub;
-	const rateLimitError = await (stub as any).checkSendRateLimit();
+	const rateLimitError = await stub.checkSendRateLimit();
 	if (rateLimitError) return c.json({ error: rateLimitError }, 429);
 	const attachmentData = await storeAttachments(c.env.BUCKET, messageId, attachments);
 
@@ -258,7 +263,7 @@ app.post("/api/v1/mailboxes/:mailboxId/emails/:id/move", async (c: AppContext) =
 // -- Threads --------------------------------------------------------
 
 app.get("/api/v1/mailboxes/:mailboxId/threads/:threadId", async (c: AppContext) => {
-	return c.json(await (c.var.mailboxStub as any).getThreadEmails(c.req.param("threadId")!));
+	return c.json(await c.var.mailboxStub.getThreadEmails(c.req.param("threadId")!));
 });
 
 app.post("/api/v1/mailboxes/:mailboxId/threads/:threadId/read", async (c: AppContext) => {
@@ -303,7 +308,7 @@ app.get("/api/v1/mailboxes/:mailboxId/search", async (c: AppContext) => {
 		date_end: c.req.query("date_end"), is_read: boolQuery(c, "is_read"),
 		is_starred: boolQuery(c, "is_starred"), has_attachment: boolQuery(c, "has_attachment"),
 	};
-	const stub = c.var.mailboxStub as any;
+	const stub = c.var.mailboxStub;
 	const emails = await stub.searchEmails({ ...searchOpts, page: intQuery(c, "page"), limit: intQuery(c, "limit") });
 	const totalCount = await stub.countSearchResults(searchOpts);
 	return c.json({ emails, totalCount });
@@ -356,15 +361,37 @@ async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env
 	const ccRecipients = (parsedEmail.cc || []).map((e) => e.address?.toLowerCase()).filter(Boolean) as string[];
 	const bccRecipients = (parsedEmail.bcc || []).map((e) => e.address?.toLowerCase()).filter(Boolean) as string[];
 
+	const defaultMailbox = (env.DEFAULT_MAILBOX || "").trim().toLowerCase();
 	let mailboxId: string | undefined;
-	if (allowedAddresses.length > 0) {
+	if (defaultMailbox) {
+		// Single catch-all inbox: every delivered message lands in one mailbox.
+		mailboxId = defaultMailbox;
+	} else if (allowedAddresses.length > 0) {
 		mailboxId = allRecipients.find((addr) => allowedAddresses.includes(addr));
 		if (!mailboxId) { console.log(`Ignoring email: no recipient matches EMAIL_ADDRESSES.`); return; }
 	} else { mailboxId = allRecipients[0]; }
 	if (!mailboxId) throw new Error("received email with no valid recipient address");
 
 	const messageId = crypto.randomUUID();
-	if (!(await env.BUCKET.head(`mailboxes/${mailboxId}.json`))) { console.log(`Ignoring email for ${mailboxId}: mailbox does not exist`); return; }
+	const mailboxKey = `mailboxes/${mailboxId}.json`;
+	if (!(await env.BUCKET.head(mailboxKey))) {
+		if (!defaultMailbox) {
+			console.log(`Ignoring email for ${mailboxId}: mailbox does not exist`);
+			return;
+		}
+		// Auto-provision the catch-all mailbox on first delivery.
+		const localPart = mailboxId.split("@")[0] || mailboxId;
+		const defaultSettings = {
+			fromName: localPart,
+			forwarding: { enabled: false, email: "" },
+			signature: { enabled: false, text: "" },
+			autoReply: { enabled: false, subject: "", message: "" },
+		};
+		await env.BUCKET.put(mailboxKey, JSON.stringify(defaultSettings));
+		const bootstrap = env.MAILBOX.get(env.MAILBOX.idFromName(mailboxId));
+		await bootstrap.getFolders();
+		console.log(`Auto-created catch-all mailbox ${mailboxId}`);
+	}
 
 	const stub = env.MAILBOX.get(env.MAILBOX.idFromName(mailboxId));
 
@@ -386,7 +413,7 @@ async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env
 	let threadId = emailReferences[0] || inReplyTo || messageId;
 
 	if (!inReplyTo && emailReferences.length === 0) {
-		const subjectThread = await (stub as any).findThreadBySubject(parsedEmail.subject || "", parsedEmail.from?.address || undefined);
+		const subjectThread = await stub.findThreadBySubject(parsedEmail.subject || "", parsedEmail.from?.address || undefined);
 		if (subjectThread) threadId = subjectThread;
 	}
 

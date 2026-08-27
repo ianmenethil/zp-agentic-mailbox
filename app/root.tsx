@@ -23,6 +23,7 @@ import {
 	ScrollRestoration,
 } from "react-router";
 import { ApiError } from "~/services/api";
+import { THEME_BOOT_SCRIPT } from "~/components/ThemeToggle";
 import "./index.css";
 
 function makeQueryClient() {
@@ -77,7 +78,7 @@ const KumoLink = forwardRef<
 
 export function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang="en" data-theme="kumo" data-mode="dark" style={{ colorScheme: "dark" }}>
 			<head>
 				<meta charSet="UTF-8" />
 				<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -89,6 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				/>
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>Agentic Inbox</title>
+				<script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
 				<Meta />
 				<Links />
 			</head>

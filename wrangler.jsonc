@@ -3,6 +3,8 @@
 	"name": "agentic-inbox",
 	"compatibility_date": "2025-11-28",
 	"main": "./workers/app.ts",
+	"workers_dev": true,
+	"preview_urls": true,
 	"observability": {
 		"enabled": true
 	},
@@ -13,9 +15,18 @@
 		// Production deploys must also define POLICY_AUD and TEAM_DOMAIN.
 		// TEAM_DOMAIN may be the base Access URL or the full /cdn-cgi/access/certs URL.
 		// The worker now fails closed outside local development if Access is not configured.
-		"DOMAINS": "example.com",
-		"EMAIL_ADDRESSES": []
+		"DOMAINS": "zenithpayments.support,mail.zenithpayments.support",
+		// All inbound mail (including catch-all) is filed into this single mailbox.
+		"DEFAULT_MAILBOX": "inbox@zenithpayments.support",
+		// Home UI auto-creates these on first load.
+		"EMAIL_ADDRESSES": ["inbox@zenithpayments.support"]
 	},
+	"routes": [
+		{
+			"pattern": "mail.zenithpayments.support",
+			"custom_domain": true
+		}
+	],
 	"send_email": [
 		{
 			"name": "EMAIL",
