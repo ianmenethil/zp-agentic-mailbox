@@ -1,4 +1,78 @@
 allowBuilds:
-  core-js-pure: set this to true or false
-  esbuild: set this to true or false
-  workerd: set this to true or false
+  core-js-pure: true
+  esbuild: true
+  workerd: true
+overrides:
+  "@cloudflare/kumo>zod": "$zod"
+  "@tiptap/core": "3.20.2"
+  "@tiptap/pm": "3.20.2"
+  "@tiptap/extensions": "3.20.2"
+  "@tiptap/extension-blockquote": "3.20.2"
+  "@tiptap/extension-bold": "3.20.2"
+  "@tiptap/extension-bubble-menu": "3.20.2"
+  "@tiptap/extension-bullet-list": "3.20.2"
+  "@tiptap/extension-code": "3.20.2"
+  "@tiptap/extension-code-block": "3.20.2"
+  "@tiptap/extension-document": "3.20.2"
+  "@tiptap/extension-dropcursor": "3.20.2"
+  "@tiptap/extension-floating-menu": "3.20.2"
+  "@tiptap/extension-gapcursor": "3.20.2"
+  "@tiptap/extension-hard-break": "3.20.2"
+  "@tiptap/extension-heading": "3.20.2"
+  "@tiptap/extension-horizontal-rule": "3.20.2"
+  "@tiptap/extension-italic": "3.20.2"
+  "@tiptap/extension-list": "3.20.2"
+  "@tiptap/extension-list-item": "3.20.2"
+  "@tiptap/extension-list-keymap": "3.20.2"
+  "@tiptap/extension-ordered-list": "3.20.2"
+  "@tiptap/extension-paragraph": "3.20.2"
+  "@tiptap/extension-strike": "3.20.2"
+  "@tiptap/extension-text": "3.20.2"
+peerDependencyRules:
+  allowedVersions:
+    zod: "4"
+minimumReleaseAgeExclude:
+  - '@ai-sdk/gateway@4.0.67'
+  - '@ai-sdk/provider-utils@5.0.32'
+  - '@tanstack/query-core@5.102.6'
+  - '@tanstack/react-query@5.102.6'
+  - '@tiptap/core@3.30.5'
+  - '@tiptap/extension-blockquote@3.30.5'
+  - '@tiptap/extension-bold@3.30.5'
+  - '@tiptap/extension-bubble-menu@3.30.5'
+  - '@tiptap/extension-bullet-list@3.30.5'
+  - '@tiptap/extension-code-block@3.30.5'
+  - '@tiptap/extension-code@3.30.5'
+  - '@tiptap/extension-color@3.30.5'
+  - '@tiptap/extension-document@3.30.5'
+  - '@tiptap/extension-dropcursor@3.30.5'
+  - '@tiptap/extension-floating-menu@3.30.5'
+  - '@tiptap/extension-gapcursor@3.30.5'
+  - '@tiptap/extension-hard-break@3.30.5'
+  - '@tiptap/extension-heading@3.30.5'
+  - '@tiptap/extension-highlight@3.30.5'
+  - '@tiptap/extension-horizontal-rule@3.30.5'
+  - '@tiptap/extension-image@3.30.5'
+  - '@tiptap/extension-italic@3.30.5'
+  - '@tiptap/extension-link@3.30.5'
+  - '@tiptap/extension-list-item@3.30.5'
+  - '@tiptap/extension-list-keymap@3.30.5'
+  - '@tiptap/extension-list@3.30.5'
+  - '@tiptap/extension-ordered-list@3.30.5'
+  - '@tiptap/extension-paragraph@3.30.5'
+  - '@tiptap/extension-strike@3.30.5'
+  - '@tiptap/extension-text-align@3.30.5'
+  - '@tiptap/extension-text-style@3.30.5'
+  - '@tiptap/extension-text@3.30.5'
+  - '@tiptap/extension-underline@3.30.5'
+  - '@tiptap/extensions@3.30.5'
+  - '@tiptap/pm@3.30.5'
+  - '@tiptap/react@3.30.5'
+  - '@tiptap/starter-kit@3.30.5'
+  - ai@7.0.83
+  - '@cloudflare/workers-types@5.20260827.1'
+  - '@cloudflare/ai-chat@0.10.2'
+  - agents@0.21.0
+  - workers-ai-provider@4.0.0
+  - zod@4.4.3
+  - '@ai-sdk/react@3.0.269'
