@@ -3,7 +3,7 @@ catalog:
 allowBuilds:
   core-js-pure: true
   esbuild: true
-  lefthook: set this to true or false
+  lefthook: true
   workerd: true
 overrides:
   "@cloudflare/kumo>zod": "catalog:"
@@ -34,6 +34,7 @@ overrides:
 peerDependencyRules:
   allowedVersions:
     zod: "4"
+    typescript: "7"
 minimumReleaseAgeExclude:
   - '@ai-sdk/gateway@4.0.67'
   - '@ai-sdk/provider-utils@5.0.32'
@@ -78,5 +79,7 @@ minimumReleaseAgeExclude:
   - agents@0.21.0
   - workers-ai-provider@4.0.0
   - zod@4.4.3
-  - '@ai-sdk/react@3.0.269'
-  - lefthook@2.0.0
+  - '@ai-sdk/react@3.0.269 || 4.0.86'
+  - lefthook@2.1.10
+  - '@ai-sdk/mcp@2.0.39'
+  - '@types/node@26.4.0'

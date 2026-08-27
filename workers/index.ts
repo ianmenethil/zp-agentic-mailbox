@@ -28,7 +28,7 @@ type AppContext = Context<MailboxContext>;
 const CreateMailboxBody = z.object({
 	email: z.string().email(),
 	name: z.string().min(1),
-	settings: z.record(z.any()).optional(), // unvalidated — agentSystemPrompt goes straight to AI
+	settings: z.record(z.string(), z.any()).optional(), // unvalidated — agentSystemPrompt goes straight to AI
 });
 
 const DraftBody = z.object({
@@ -302,11 +302,17 @@ app.delete("/api/v1/mailboxes/:mailboxId/folders/:id", async (c: AppContext) => 
 // -- Search ---------------------------------------------------------
 
 app.get("/api/v1/mailboxes/:mailboxId/search", async (c: AppContext) => {
-	const searchOpts: Record<string, unknown> = {
-		query: c.req.query("query") || "", folder: c.req.query("folder"), from: c.req.query("from"),
-		to: c.req.query("to"), subject: c.req.query("subject"), date_start: c.req.query("date_start"),
-		date_end: c.req.query("date_end"), is_read: boolQuery(c, "is_read"),
-		is_starred: boolQuery(c, "is_starred"), has_attachment: boolQuery(c, "has_attachment"),
+	const searchOpts = {
+		query: c.req.query("query") || "",
+		folder: c.req.query("folder"),
+		from: c.req.query("from"),
+		to: c.req.query("to"),
+		subject: c.req.query("subject"),
+		date_start: c.req.query("date_start"),
+		date_end: c.req.query("date_end"),
+		is_read: boolQuery(c, "is_read"),
+		is_starred: boolQuery(c, "is_starred"),
+		has_attachment: boolQuery(c, "has_attachment"),
 	};
 	const stub = c.var.mailboxStub;
 	const emails = await stub.searchEmails({ ...searchOpts, page: intQuery(c, "page"), limit: intQuery(c, "limit") });
