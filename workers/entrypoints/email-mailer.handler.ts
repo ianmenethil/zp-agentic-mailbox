@@ -2,7 +2,7 @@ import type {
 	EmailMessage,
 	EmailRpcResult,
 	EmailRpcSendData,
-} from "@ianmenethil/zp-emails/send";
+} from "@zp-shared/emails/send";
 import { Folders } from "../../shared/folders";
 import { sendEmail } from "../email-sender";
 import {
@@ -14,6 +14,7 @@ import {
 	assertRpcSenderAllowed,
 	normalizeFromEmail,
 } from "../lib/rpc-send-policy";
+import { resolveRpcSentMailbox } from "../lib/rpc-sent-mailbox";
 import type { Env } from "../types";
 
 function addressListToString(
@@ -24,9 +25,8 @@ function addressListToString(
 }
 
 /**
- * Persist an RPC send into Sent so outbound mail is visible in the inbox UI
- * (Resend-dashboard equivalent). Uses DEFAULT_MAILBOX when set — RPC from
- * addresses (noreply@…) are allowlisted separately from UI mailboxes.
+ * Persist an RPC send into Sent so outbound mail is visible in the inbox UI.
+ * Uses the from-address mailbox when provisioned; otherwise DEFAULT_MAILBOX.
  */
 async function saveRpcSendToSent(
 	env: Env,
@@ -34,8 +34,7 @@ async function saveRpcSendToSent(
 	fromEmail: string,
 	deliveryMessageId: string,
 ): Promise<void> {
-	const mailboxId =
-		(env.DEFAULT_MAILBOX || "").trim().toLowerCase() || fromEmail;
+	const mailboxId = await resolveRpcSentMailbox(env, fromEmail);
 	const fromDomain = fromEmail.split("@")[1];
 	if (!fromDomain) return;
 

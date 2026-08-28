@@ -96,10 +96,10 @@ Other Cloudflare Workers can send outbound mail through this Worker **without** 
 ]
 ```
 
-Call from the consumer with `@ianmenethil/zp-emails/send`:
+Call from the consumer with `@zp-shared/emails/send`:
 
 ```ts
-import { sendEmail, rpcTransport } from "@ianmenethil/zp-emails/send";
+import { sendEmail, rpcTransport } from "@zp-shared/emails/send";
 
 await sendEmail(
   { to, from, subject, html, text },
@@ -109,7 +109,7 @@ await sendEmail(
 
 **Allowed `from` addresses (RPC allowlist):** `noreply@zenithpayments.support`, `no-reply@zenithpayments.support` (see `workers/lib/rpc-send-policy.ts`). This list is separate from mailbox UI `validateSender()` rules.
 
-**Sent folder:** Successful RPC sends are copied into **Sent** on `DEFAULT_MAILBOX` (`inbox@zenithpayments.support`) so outbound mail from other services is visible in the Agent Inbox UI (same idea as Resend’s send log). The stored `sender` is the real RPC `from` (e.g. `noreply@…`).
+**Sent folder:** Successful RPC sends are copied into **Sent** on the **from-address mailbox** when that mailbox exists (e.g. `no-reply@zenithpayments.support` for Status Server alerts). If the from mailbox is not provisioned, the copy falls back to `DEFAULT_MAILBOX` (`inbox@zenithpayments.support`). The stored `sender` is the real RPC `from`.
 
 **Access ≠ RPC auth:** Cloudflare Access protects the Agent Mailbox UI, API, and MCP over HTTP. Service-binding RPC is Worker-to-Worker inside your account and does not use Access JWTs. Deploy `agentic-inbox` with `EmailMailerEntrypoint` **before** binding consumers (e.g. Auth `EMAIL_RPC`).
 

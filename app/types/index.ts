@@ -2,13 +2,13 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-export interface SignatureSettings {
+interface SignatureSettings {
 	enabled: boolean;
 	text: string;
 	html?: string;
 }
 
-export interface MailboxSettings {
+interface MailboxSettings {
 	fromName?: string;
 	forwarding?: { enabled: boolean; email: string };
 	signature?: SignatureSettings;

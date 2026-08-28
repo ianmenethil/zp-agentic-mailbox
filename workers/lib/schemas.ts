@@ -54,10 +54,6 @@ const RecipientFieldSchema = z.union([
 	z.array(z.string().email()).min(1),
 ]);
 
-export const ErrorResponseSchema = z.object({
-	error: z.string(),
-});
-
 export const SendEmailRequestSchema = z
 	.object({
 		to: RecipientFieldSchema,
@@ -89,7 +85,3 @@ export const SendEmailRequestSchema = z
 		message: "Either 'html' or 'text' must be provided",
 	});
 
-export const SendEmailResponseSchema = z.object({
-	id: z.string(),
-	status: z.string(),
-});

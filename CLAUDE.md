@@ -14,11 +14,12 @@ Architecture: Browser (React SPA + Agent panel) → Hono Worker (API + SSR, `wor
 
 - `pnpm dev` — local dev (`react-router dev`); Cloudflare Access auth is skipped in dev (`import.meta.env.DEV` check in `workers/app.ts`).
 - `pnpm typecheck` — runs `cf-typegen` (regenerates `worker-configuration.d.ts`) → `react-router typegen` → `tsc -b`. Always regenerates types first; don't hand-edit `worker-configuration.d.ts`.
-- `pnpm test:rpc` — runs both test files via Node's native test runner through `tsx --test` (`test:rpc-policy` + `test:email-mailer`). **Not Vitest** — no Vitest config exists.
-- `pnpm check` — the full gate: frozen-lockfile install → `test:rpc` → `typecheck` → `build`. This is what `lefthook` runs on pre-push.
+- `pnpm lint` / `pnpm lint:fix` — ESLint code quality checks and auto-fix.
+- `pnpm knip` — finds unused files, dependencies, and exports.
+- `pnpm jscpd` — checks for copy/pasted duplicate code across the codebase.
+- `pnpm test:rpc` — runs RPC test files via Node's native test runner through `tsx --test` (`rpc-send-policy`, `rpc-sent-mailbox`, `email-mailer`). **Not Vitest** — no Vitest config exists.
+- `pnpm check` — the full gate: frozen-lockfile install → `test:rpc` → `typecheck` → `lint` → `knip` → `jscpd` → `build`. This is what `lefthook` runs on pre-push.
 - `pnpm build` / `pnpm deploy` (`build && wrangler deploy`) / `pnpm preview`.
-
-No `lint` or `format` script exists — no eslint/biome/prettier configured. Code quality is enforced only by TypeScript strict mode + the two test files + lefthook git hooks.
 
 ## Durable Objects (`workers/`)
 
@@ -28,7 +29,7 @@ No `lint` or `format` script exists — no eslint/biome/prettier configured. Cod
 
 ## RPC send path (service binding)
 
-Other Workers can send mail via a service binding to `EmailMailerEntrypoint` (`workers/entrypoints/`, exported from `workers/app.ts`), bypassing HTTP/Access entirely. Sender allowlist enforced in `workers/lib/rpc-send-policy.ts` — separate from the UI's `validateSender()` rules. Successful RPC sends are copied into the Sent folder of `DEFAULT_MAILBOX` (`wrangler.jsonc` var) so they're visible in the UI.
+Other Workers can send mail via a service binding to `EmailMailerEntrypoint` (`workers/entrypoints/`, exported from `workers/app.ts`), bypassing HTTP/Access entirely. Sender allowlist enforced in `workers/lib/rpc-send-policy.ts` — separate from the UI's `validateSender()` rules. Successful RPC sends are copied into Sent on the from-address mailbox when provisioned (`workers/lib/rpc-sent-mailbox.ts`); otherwise they fall back to `DEFAULT_MAILBOX`.
 
 ## Security model — read before touching auth
 
@@ -39,5 +40,5 @@ Production fails closed if the `POLICY_AUD` / `TEAM_DOMAIN` secrets aren't set (
 ## Gotchas
 
 - `tsconfig.cloudflare.json` sets `noImplicitAny: false`, weaker than the root `tsconfig.json`'s `strict: true` — applies to `app/**`, `workers/**`, `shared/**`.
-- `@ianmenethil/zp-emails` is installed from a private CDN tarball URL (not the npm registry) — `pnpm install --frozen-lockfile` depends on that URL staying up.
-- Only two test files exist (`rpc-send-policy.test.ts`, `email-mailer.entrypoint.test.ts`), both covering the RPC send-policy/Sent-folder feature. `MailboxDO`, `EmailAgent`, `EmailMCP`, and the frontend have no automated tests.
+- `@zp-shared/emails` is installed from a private CDN tarball URL (not the npm registry) — `pnpm install --frozen-lockfile` depends on that URL staying up.
+- Only three RPC test files exist (`rpc-send-policy.test.ts`, `rpc-sent-mailbox.test.ts`, `email-mailer.entrypoint.test.ts`), all covering the RPC send-policy/Sent-folder feature. `MailboxDO`, `EmailAgent`, `EmailMCP`, and the frontend have no automated tests.

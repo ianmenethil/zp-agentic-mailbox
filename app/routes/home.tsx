@@ -5,7 +5,6 @@
 import {
 	Button,
 	Dialog,
-	Empty,
 	Input,
 	Loader,
 	Select,
@@ -14,7 +13,7 @@ import {
 } from "@cloudflare/kumo";
 import { EnvelopeIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink } from "react-router";
 import api from "~/services/api";
 import {
@@ -31,7 +30,11 @@ export function meta() {
 
 export default function HomeRoute() {
 	const toastManager = useKumoToastManager();
-	const { data: mailboxes = [], refetch: refetchMailboxes, isFetched: mailboxesFetched } = useMailboxes();
+	const {
+		data: mailboxes = [],
+		isFetched: mailboxesFetched,
+		refetch: refetchMailboxes,
+	} = useMailboxes();
 	const createMailbox = useCreateMailbox();
 	const deleteMailbox = useDeleteMailbox();
 
@@ -41,8 +44,8 @@ export default function HomeRoute() {
 		staleTime: Infinity, // config rarely changes
 	});
 
-	const domains = configData?.domains ?? [];
-	const emailAddresses = configData?.emailAddresses ?? [];
+	const domains = useMemo(() => configData?.domains ?? [], [configData?.domains]);
+	const emailAddresses = useMemo(() => configData?.emailAddresses ?? [], [configData?.emailAddresses]);
 
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [newPrefix, setNewPrefix] = useState("");
@@ -88,7 +91,7 @@ export default function HomeRoute() {
 			}),
 		).then(() => { if (!cancelled) refetchMailboxes(); });
 		return () => { cancelled = true; };
-	}, [emailAddresses, mailboxes, refetchMailboxes]);
+	}, [emailAddresses, mailboxes, mailboxesFetched, refetchMailboxes]);
 
 	const handleCreate = async (e: FormEvent) => {
 		e.preventDefault();

@@ -1,0 +1,28 @@
+{
+  "threshold": 10,
+  "reporters": ["console"],
+  "ignore": [
+    "**/node_modules/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.react-router/**",
+    "**/.wrangler/**",
+    "**/worker-configuration.d.ts",
+    "**/*.json",
+    "**/*.yaml",
+    "**/*.yml",
+    "**/*.md",
+    "**/*.lock",
+    "**/*.tsbuildinfo",
+    "**/public/**"
+  ],
+  "format": [
+    "javascript",
+    "typescript",
+    "jsx",
+    "tsx",
+    "css"
+  ],
+  "minLines": 5,
+  "minTokens": 50
+}

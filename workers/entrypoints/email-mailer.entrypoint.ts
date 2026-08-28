@@ -4,11 +4,9 @@ import type {
 	EmailRpcContract,
 	EmailRpcResult,
 	EmailRpcSendData,
-} from "@ianmenethil/zp-emails/send";
+} from "@zp-shared/emails/send";
 import type { Env } from "../types";
 import { handleRpcSend } from "./email-mailer.handler";
-
-export { handleRpcSend } from "./email-mailer.handler";
 
 export class EmailMailerEntrypoint
 	extends WorkerEntrypoint<Env>

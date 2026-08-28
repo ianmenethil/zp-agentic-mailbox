@@ -153,7 +153,7 @@ export async function resolveOriginalEmail(
  * Escape all five OWASP-recommended HTML special characters in plain text.
  * Safe for use in both text content and attribute contexts.
  */
-export function escapeHtml(text: string): string {
+function escapeHtml(text: string): string {
 	if (!text) return "";
 	return text
 		.replace(/&/g, "&amp;")
@@ -193,7 +193,7 @@ export function stripHtmlToText(html: string): string {
  * Format a date string for use in quoted reply blocks.
  * @deprecated Use `formatQuotedDate` from `shared/dates` directly.
  */
-export const formatEmailDate = formatQuotedDate;
+const formatEmailDate = formatQuotedDate;
 
 /**
  * Build a quoted reply block HTML string from original email data.

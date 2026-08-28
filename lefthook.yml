@@ -10,6 +10,12 @@ pre-push:
       run: pnpm run test:rpc
     typecheck:
       run: pnpm run typecheck
+    lint:
+      run: pnpm run lint
+    knip:
+      run: pnpm run knip
+    jscpd:
+      run: pnpm run jscpd
     build:
       run: pnpm run build
 
@@ -22,3 +28,6 @@ pre-commit:
     workspace-yaml-present:
       glob: "{pnpm-workspace.yaml,pnpm-lock.yaml,package.json}"
       run: test -f pnpm-lock.yaml && test -f pnpm-workspace.yaml
+    lint:
+      glob: "*.{js,ts,jsx,tsx}"
+      run: pnpm run lint

@@ -5,9 +5,9 @@
 import { create } from "zustand";
 import type { Email } from "~/types";
 
-export type ComposeMode = "new" | "reply" | "reply-all" | "forward";
+type ComposeMode = "new" | "reply" | "reply-all" | "forward";
 
-export interface ComposeOptions {
+interface ComposeOptions {
 	mode: ComposeMode;
 	originalEmail?: Email | null;
 	/** When editing a draft, this holds the draft email to pre-fill the composer */

@@ -19,7 +19,11 @@
 		// All inbound mail (including catch-all) is filed into this single mailbox.
 		"DEFAULT_MAILBOX": "inbox@zenithpayments.support",
 		// Home UI auto-creates these on first load.
-		"EMAIL_ADDRESSES": ["inbox@zenithpayments.support"]
+		"EMAIL_ADDRESSES": [
+			"inbox@zenithpayments.support",
+			"no-reply@zenithpayments.support",
+			"noreply@zenithpayments.support"
+		]
 	},
 	"routes": [
 		{

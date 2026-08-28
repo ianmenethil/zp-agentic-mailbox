@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/overview/configuration-schema.json",
+  "entry": [
+    "workers/index.ts",
+    "workers/**/*.test.ts",
+    "app/components/ui/**/*.{ts,tsx}"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx,css}",
+    "workers/**/*.{ts,tsx}",
+    "shared/**/*.{ts,tsx}"
+  ],
+  "ignoreDependencies": [
+    "lucide-react",
+    "cloudflare"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "exports": "warn",
+    "types": "warn",
+    "catalog": "warn"
+  }
+}

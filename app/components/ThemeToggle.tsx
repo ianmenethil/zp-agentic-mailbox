@@ -10,7 +10,7 @@ const STORAGE_KEY = "agentic-inbox-color-mode";
 
 export type ColorMode = "light" | "dark";
 
-export function getStoredColorMode(): ColorMode {
+function getStoredColorMode(): ColorMode {
 	if (typeof window === "undefined") return "dark";
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY);
@@ -21,7 +21,7 @@ export function getStoredColorMode(): ColorMode {
 	return "dark";
 }
 
-export function applyColorMode(mode: ColorMode) {
+function applyColorMode(mode: ColorMode) {
 	document.documentElement.dataset.theme = "kumo";
 	document.documentElement.dataset.mode = mode;
 	document.documentElement.style.colorScheme = mode;
