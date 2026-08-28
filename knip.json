@@ -2,8 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/overview/configuration-schema.json",
   "entry": [
     "workers/index.ts",
-    "workers/**/*.test.ts",
-    "app/components/ui/**/*.{ts,tsx}"
+    "workers/**/*.test.ts"
   ],
   "project": [
     "app/**/*.{ts,tsx,css}",
@@ -11,7 +10,6 @@
     "shared/**/*.{ts,tsx}"
   ],
   "ignoreDependencies": [
-    "lucide-react",
     "cloudflare"
   ],
   "ignoreExportsUsedInFile": true,

@@ -20,11 +20,8 @@ function envWithMailboxes(
 }
 
 describe("resolveRpcSentMailbox", () => {
-	it("uses the from-address mailbox when it exists", async () => {
-		const env = envWithMailboxes([
-			"no-reply@zenithpayments.support",
-			"inbox@zenithpayments.support",
-		]);
+	it("routes allowlisted RPC senders to their own mailbox without an R2 lookup", async () => {
+		const env = envWithMailboxes(["inbox@zenithpayments.support"]);
 		const mailbox = await resolveRpcSentMailbox(
 			env,
 			"no-reply@zenithpayments.support",
@@ -32,11 +29,20 @@ describe("resolveRpcSentMailbox", () => {
 		assert.equal(mailbox, "no-reply@zenithpayments.support");
 	});
 
+	it("uses a provisioned from-address mailbox for non-allowlisted senders", async () => {
+		const env = envWithMailboxes(["alerts@zenithpayments.support"]);
+		const mailbox = await resolveRpcSentMailbox(
+			env,
+			"alerts@zenithpayments.support",
+		);
+		assert.equal(mailbox, "alerts@zenithpayments.support");
+	});
+
 	it("falls back to DEFAULT_MAILBOX when from mailbox is missing", async () => {
 		const env = envWithMailboxes(["inbox@zenithpayments.support"]);
 		const mailbox = await resolveRpcSentMailbox(
 			env,
-			"noreply@zenithpayments.support",
+			"alerts@zenithpayments.support",
 		);
 		assert.equal(mailbox, "inbox@zenithpayments.support");
 	});
@@ -45,8 +51,8 @@ describe("resolveRpcSentMailbox", () => {
 		const env = envWithMailboxes([], "");
 		const mailbox = await resolveRpcSentMailbox(
 			env,
-			"noreply@zenithpayments.support",
+			"alerts@zenithpayments.support",
 		);
-		assert.equal(mailbox, "noreply@zenithpayments.support");
+		assert.equal(mailbox, "alerts@zenithpayments.support");
 	});
 });

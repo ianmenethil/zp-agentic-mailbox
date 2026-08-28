@@ -59,7 +59,7 @@ function makeEnv(
 }
 
 describe("handleRpcSend", () => {
-	it("allows listed from, sends, and saves a Sent copy on DEFAULT_MAILBOX when from mailbox is missing", async () => {
+	it("allows listed from, sends, and saves a Sent copy on the allowlisted from mailbox", async () => {
 		let called = false;
 		const saved: SentCreateArgs[] = [];
 		const env = makeEnv(
@@ -78,7 +78,7 @@ describe("handleRpcSend", () => {
 		assert.equal(called, true);
 		assert.deepEqual(result, { ok: true, data: { messageId: "msg_123" } });
 		assert.equal(saved.length, 1);
-		assert.equal(saved[0]?.mailboxId, "inbox@zenithpayments.support");
+		assert.equal(saved[0]?.mailboxId, "noreply@zenithpayments.support");
 		assert.equal(saved[0]?.folder, "sent");
 		assert.equal(saved[0]?.email.sender, "noreply@zenithpayments.support");
 		assert.equal(saved[0]?.email.recipient, "user@example.com");
@@ -86,15 +86,12 @@ describe("handleRpcSend", () => {
 		assert.equal(saved[0]?.email.body, "<p>Hi</p>");
 	});
 
-	it("saves a Sent copy on the from-address mailbox when it exists", async () => {
+	it("saves a Sent copy on the from-address mailbox for allowlisted RPC senders", async () => {
 		const saved: SentCreateArgs[] = [];
 		const env = makeEnv(
 			async () => ({ messageId: "msg_789" }),
 			{
-				existingMailboxes: [
-					"noreply@zenithpayments.support",
-					"inbox@zenithpayments.support",
-				],
+				existingMailboxes: ["inbox@zenithpayments.support"],
 				onCreateEmail: (args) => saved.push(args),
 			},
 		);

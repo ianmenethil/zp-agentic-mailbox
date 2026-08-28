@@ -109,7 +109,7 @@ await sendEmail(
 
 **Allowed `from` addresses (RPC allowlist):** `noreply@zenithpayments.support`, `no-reply@zenithpayments.support` (see `workers/lib/rpc-send-policy.ts`). This list is separate from mailbox UI `validateSender()` rules.
 
-**Sent folder:** Successful RPC sends are copied into **Sent** on the **from-address mailbox** when that mailbox exists (e.g. `no-reply@zenithpayments.support` for Status Server alerts). If the from mailbox is not provisioned, the copy falls back to `DEFAULT_MAILBOX` (`inbox@zenithpayments.support`). The stored `sender` is the real RPC `from`.
+**Sent folder:** Successful RPC sends are copied into **Sent** on the **from-address mailbox** for allowlisted system senders (`no-reply@`, `noreply@`). Other senders use their own mailbox when provisioned; otherwise the copy falls back to `DEFAULT_MAILBOX` (`inbox@zenithpayments.support`).
 
 **Access ≠ RPC auth:** Cloudflare Access protects the Agent Mailbox UI, API, and MCP over HTTP. Service-binding RPC is Worker-to-Worker inside your account and does not use Access JWTs. Deploy `agentic-inbox` with `EmailMailerEntrypoint` **before** binding consumers (e.g. Auth `EMAIL_RPC`).
 

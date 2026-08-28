@@ -29,7 +29,7 @@ Architecture: Browser (React SPA + Agent panel) → Hono Worker (API + SSR, `wor
 
 ## RPC send path (service binding)
 
-Other Workers can send mail via a service binding to `EmailMailerEntrypoint` (`workers/entrypoints/`, exported from `workers/app.ts`), bypassing HTTP/Access entirely. Sender allowlist enforced in `workers/lib/rpc-send-policy.ts` — separate from the UI's `validateSender()` rules. Successful RPC sends are copied into Sent on the from-address mailbox when provisioned (`workers/lib/rpc-sent-mailbox.ts`); otherwise they fall back to `DEFAULT_MAILBOX`.
+Other Workers can send mail via a service binding to `EmailMailerEntrypoint` (`workers/entrypoints/`, exported from `workers/app.ts`), bypassing HTTP/Access entirely. Sender allowlist enforced in `workers/lib/rpc-send-policy.ts` — separate from the UI's `validateSender()` rules. Successful RPC sends are copied into Sent on the from-address mailbox for allowlisted system senders (`no-reply@`, `noreply@`); other senders use their mailbox when provisioned, else `DEFAULT_MAILBOX`.
 
 ## Security model — read before touching auth
 
