@@ -21,8 +21,7 @@
 		// Home UI auto-creates these on first load.
 		"EMAIL_ADDRESSES": [
 			"inbox@zenithpayments.support",
-			"no-reply@zenithpayments.support",
-			"noreply@zenithpayments.support"
+			"no-reply@zenithpayments.support"
 		]
 	},
 	"routes": [
