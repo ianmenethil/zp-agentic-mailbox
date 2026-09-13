@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Self-hosted AI email client running entirely on Cloudflare Workers. Inbound mail arrives via Cloudflare Email Routing (catch-all → the Worker's `email()` handler in `workers/index.ts`). Each mailbox is an isolated Durable Object with its own SQLite database; attachments live in R2. A React Router v8 SPA (SSR) is served by the same Worker via Hono.
+Self-hosted AI email client running entirely on Cloudflare Workers. Inbound mail arrives via Cloudflare Email Routing (catch-all → the Worker's `email()` handler in `workers/index.ts`). After filing, `receiveEmail` forwards the message to `FORWARD_TO` when that var is set, and triggers the agent's auto-draft only when `AUTO_DRAFT` is `"true"` (both in `wrangler.jsonc`; auto-draft is off by default). Each mailbox is an isolated Durable Object with its own SQLite database; attachments live in R2. A React Router v8 SPA (SSR) is served by the same Worker via Hono.
 
 Single-package project — no monorepo, no workspaces (`pnpm-workspace.yaml` only configures pnpm's dependency catalog/overrides, not multi-package workspaces).
 
@@ -13,7 +13,7 @@ Architecture: Browser (React SPA + Agent panel) → Hono Worker (API + SSR, `wor
 ## Key commands
 
 - `pnpm dev` — local dev (`react-router dev`); Cloudflare Access auth is skipped in dev (`import.meta.env.DEV` check in `workers/app.ts`).
-- `pnpm typecheck` — runs `cf-typegen` (regenerates `worker-configuration.d.ts`) → `react-router typegen` → `tsc -b`. Always regenerates types first; don't hand-edit `worker-configuration.d.ts`.
+- `pnpm typecheck` — runs `cf-typegen` (regenerates `worker-configuration.d.ts`) → `react-router typegen` → `tsc -b`. Always regenerates types first; don't hand-edit `worker-configuration.d.ts`. `cf-typegen` passes `--strict-vars=false` so every `vars` entry types as `string`; without it each var types as the literal value in `wrangler.jsonc`, which makes comparing a var against any other value a no-overlap error.
 - `pnpm lint` / `pnpm lint:fix` — ESLint code quality checks and auto-fix.
 - `pnpm knip` — finds unused files, dependencies, and exports.
 - `pnpm jscpd` — checks for copy/pasted duplicate code across the codebase.
