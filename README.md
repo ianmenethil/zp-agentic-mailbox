@@ -40,7 +40,8 @@ https://github.com/cloudflare/agentic-inbox/issues/4#issuecomment-4269118513
 - **Full email client** — Send and receive emails via Cloudflare Email Routing with a rich text composer, reply/forward threading, folder organization, search, and attachments
 - **Per-mailbox isolation** — Each mailbox runs in its own Durable Object with SQLite storage and R2 for attachments
 - **Built-in AI agent** — Side panel with 9 email tools for reading, searching, drafting, and sending
-- **Auto-draft on new email** — Agent automatically reads inbound emails and generates draft replies, always requiring explicit confirmation before sending
+- **Auto-draft on new email** — Off by default (`AUTO_DRAFT` in `wrangler.jsonc`). Set it to `"true"` and the agent reads each inbound email and generates a draft reply, always requiring explicit confirmation before sending
+- **Forward a copy on arrival** — Set `FORWARD_TO` in `wrangler.jsonc` to a verified Email Routing destination and every inbound message is filed in the mailbox *and* forwarded there, so domain mail still lands in a normal client. Leave it empty to disable
 - **Configurable and persistent** — Custom system prompts per mailbox, persistent chat history, streaming markdown responses, and tool call visibility
 
 ## Stack

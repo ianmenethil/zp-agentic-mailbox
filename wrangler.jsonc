@@ -18,6 +18,14 @@
 		"DOMAINS": "zenithpayments.support,mail.zenithpayments.support",
 		// All inbound mail (including catch-all) is filed into this single mailbox.
 		"DEFAULT_MAILBOX": "inbox@zenithpayments.support",
+		// After filing, every inbound message is also forwarded here, so mail to
+		// the domain still reaches a mailbox that is set up in a normal client.
+		// Must be a verified Email Routing destination address, or the forward
+		// fails silently. Leave empty to disable forwarding.
+		"FORWARD_TO": "ian@ianmenethil.com",
+		// When "true", the agent drafts a reply to every message that arrives.
+		// Off by default — the chat panel still drafts on request.
+		"AUTO_DRAFT": "false",
 		// Home UI auto-creates these on first load.
 		"EMAIL_ADDRESSES": [
 			"inbox@zenithpayments.support",

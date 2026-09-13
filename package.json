@@ -20,7 +20,7 @@
 	},
 	"scripts": {
 		"build": "react-router build",
-		"cf-typegen": "wrangler types",
+		"cf-typegen": "wrangler types --strict-vars=false",
 		"deploy": "pnpm run build && wrangler deploy",
 		"dev": "react-router dev",
 		"preview": "pnpm run build && vite preview",

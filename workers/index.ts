@@ -356,7 +356,7 @@ async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
 	return result;
 }
 
-async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env: Env, ctx: ExecutionContext) {
+async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
 	const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
 	const parsedEmail = await new PostalMime().parse(rawEmail);
 
@@ -434,6 +434,20 @@ async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env
 		in_reply_to: inReplyTo, email_references: emailReferences.length > 0 ? JSON.stringify(emailReferences) : null,
 		thread_id: threadId, message_id: originalMessageId, raw_headers: JSON.stringify(parsedEmail.headers),
 	}, attachmentData);
+
+	// Forward after filing, so a failed forward never costs us the stored copy —
+	// rethrowing here would make Cloudflare retry the whole handler and file a
+	// duplicate. FORWARD_TO must be a verified Email Routing destination.
+	const forwardTo = (env.FORWARD_TO || "").trim();
+	if (forwardTo) {
+		try {
+			await event.forward(forwardTo);
+		} catch (e) {
+			console.error(`Forward to ${forwardTo} failed:`, (e as Error).message);
+		}
+	}
+
+	if (env.AUTO_DRAFT !== "true") return;
 
 	const agentStub = env.EMAIL_AGENT.get(env.EMAIL_AGENT.idFromName(mailboxId));
 	ctx.waitUntil(agentStub.fetch(new Request("https://agents/onNewEmail", {
