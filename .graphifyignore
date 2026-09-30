@@ -1,0 +1,10 @@
+# graphify corpus scope. Decided 2026-09-21, recorded in
+# __Controller-GodsEye/TRACKER.md "Graphify scope".
+# Allowlist, not a denylist: exclude everything, then re-open the kept trees.
+/*
+!/app
+!/app/**
+!/workers
+!/workers/**
+!/shared
+!/shared/**

@@ -39,23 +39,23 @@ https://github.com/cloudflare/agentic-inbox/issues/4#issuecomment-4269118513
 
 - **Full email client** — Send and receive emails via Cloudflare Email Routing with a rich text composer, reply/forward threading, folder organization, search, and attachments
 - **Per-mailbox isolation** — Each mailbox runs in its own Durable Object with SQLite storage and R2 for attachments
-- **Built-in AI agent** — Side panel with 9 email tools for reading, searching, drafting, and sending
+- **Built-in AI agent** — Side panel with 9 email tools for reading, searching, drafting, and organising. The agent can only save drafts; it cannot send mail, so a person sends each draft from the UI
 - **Auto-draft on new email** — Off by default (`AUTO_DRAFT` in `wrangler.jsonc`). Set it to `"true"` and the agent reads each inbound email and generates a draft reply, always requiring explicit confirmation before sending
 - **Forward a copy on arrival** — Set `FORWARD_TO` in `wrangler.jsonc` to a verified Email Routing destination and every inbound message is filed in the mailbox *and* forwarded there, so domain mail still lands in a normal client. Leave it empty to disable
 - **Configurable and persistent** — Custom system prompts per mailbox, persistent chat history, streaming markdown responses, and tool call visibility
 
 ## Stack
 
-- **Frontend:** React 19, React Router v7, Tailwind CSS, Zustand, TipTap, `@cloudflare/kumo`
+- **Frontend:** React 19, React Router v8, Tailwind CSS, Zustand, TipTap, `@cloudflare/kumo`
 - **Backend:** Hono, Cloudflare Workers, Durable Objects (SQLite), R2, Email Routing
-- **AI Agent:** Cloudflare Agents SDK (`AIChatAgent`), AI SDK v6, Workers AI (`@cf/zai-org/glm-4.7-flash`), `react-markdown` + `remark-gfm`
+- **AI Agent:** Cloudflare Agents SDK (`AIChatAgent`), AI SDK v7, Workers AI (`@cf/zai-org/glm-4.7-flash`), `react-markdown` + `remark-gfm`
 - **Auth:** Cloudflare Access JWT validation (required outside local development)
 
 ## Getting Started
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ### Configuration
@@ -66,7 +66,7 @@ npm run dev
 ### Deploy
 
 ```bash
-npm run deploy
+pnpm run deploy
 ```
 
 ## Prerequisites
@@ -128,6 +128,11 @@ await sendEmail(
                      │                  │────>│  Workers AI     │
                      └──────────────────┘     └─────────────────┘
 ```
+
+## More documentation
+
+- [CLAUDE.md](CLAUDE.md) — commands, structure and gotchas for working in this repository (`AGENTS.md` links to it)
+- [CHANGELOG.md](CHANGELOG.md) — notable changes, newest first
 
 ## License
 

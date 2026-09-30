@@ -13,9 +13,21 @@
     "cloudflare"
   ],
   "ignoreExportsUsedInFile": true,
+  "includeEntryExports": true,
   "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "binaries": "error",
+    "unresolved": "error",
     "exports": "warn",
+    "nsExports": "error",
     "types": "warn",
+    "nsTypes": "error",
+    "enumMembers": "error",
+    "duplicates": "error",
+    "cycles": "error",
     "catalog": "warn"
   }
 }

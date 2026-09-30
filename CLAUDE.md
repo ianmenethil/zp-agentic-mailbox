@@ -2,9 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Related docs: [README.md](README.md) (setup, features, RPC send guide), [CHANGELOG.md](CHANGELOG.md) (notable changes).
+
 ## What this is
 
-Self-hosted AI email client running entirely on Cloudflare Workers. Inbound mail arrives via Cloudflare Email Routing (catch-all → the Worker's `email()` handler in `workers/index.ts`). After filing, `receiveEmail` forwards the message to `FORWARD_TO` when that var is set, and triggers the agent's auto-draft only when `AUTO_DRAFT` is `"true"` (both in `wrangler.jsonc`; auto-draft is off by default). Each mailbox is an isolated Durable Object with its own SQLite database; attachments live in R2. A React Router v8 SPA (SSR) is served by the same Worker via Hono.
+Self-hosted AI email client running entirely on Cloudflare Workers. Inbound mail arrives via Cloudflare Email Routing (catch-all → the Worker's `email()` handler in `workers/app.ts`, which calls `receiveEmail` in `workers/index.ts`). After filing, `receiveEmail` forwards the message to `FORWARD_TO` when that var is set, and triggers the agent's auto-draft only when `AUTO_DRAFT` is `"true"` (both in `wrangler.jsonc`; auto-draft is off by default). Each mailbox is an isolated Durable Object with its own SQLite database; attachments live in R2. A React Router v8 SPA (SSR) is served by the same Worker via Hono.
 
 Single-package project — no monorepo, no workspaces (`pnpm-workspace.yaml` only configures pnpm's dependency catalog/overrides, not multi-package workspaces).
 
