@@ -14,7 +14,14 @@ const baseMessage: EmailMessage = {
 type SentCreateArgs = {
 	mailboxId: string;
 	folder: string;
-	email: { sender: string; recipient: string; subject: string; body: string };
+	email: {
+		sender: string;
+		recipient: string;
+		cc: string | null;
+		bcc: string | null;
+		subject: string;
+		body: string;
+	};
 };
 
 function makeEnv(
@@ -156,5 +163,37 @@ describe("handleRpcSend", () => {
 
 		const result = await handleRpcSend(env, baseMessage);
 		assert.deepEqual(result, { ok: true, data: { messageId: "msg_456" } });
+	});
+
+	it("files object and mixed-array recipients in Sent by their email address", async () => {
+		const saved: SentCreateArgs[] = [];
+		const env = makeEnv(async () => ({ messageId: "msg_obj" }), {
+			onCreateEmail: (args) => saved.push(args),
+		});
+
+		const result = await handleRpcSend(env, {
+			...baseMessage,
+			to: { email: "Alice@Example.com", name: "Alice" },
+			cc: ["Bob@Example.com", { email: "Carol@Example.com", name: "Carol" }],
+			bcc: { email: "Dave@Example.com" },
+		});
+
+		assert.deepEqual(result, { ok: true, data: { messageId: "msg_obj" } });
+		assert.equal(saved.length, 1);
+		assert.equal(saved[0]?.email.recipient, "alice@example.com");
+		assert.equal(saved[0]?.email.cc, "bob@example.com, carol@example.com");
+		assert.equal(saved[0]?.email.bcc, "dave@example.com");
+	});
+
+	it("stores null cc and bcc in Sent when they are omitted", async () => {
+		const saved: SentCreateArgs[] = [];
+		const env = makeEnv(async () => ({ messageId: "msg_nocc" }), {
+			onCreateEmail: (args) => saved.push(args),
+		});
+
+		await handleRpcSend(env, baseMessage);
+
+		assert.equal(saved[0]?.email.cc, null);
+		assert.equal(saved[0]?.email.bcc, null);
 	});
 });

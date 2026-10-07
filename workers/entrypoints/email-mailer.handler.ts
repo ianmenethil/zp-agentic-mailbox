@@ -1,4 +1,5 @@
 import type {
+	EmailAddress,
 	EmailMessage,
 	EmailRpcResult,
 	EmailRpcSendData,
@@ -18,10 +19,14 @@ import { resolveRpcSentMailbox } from "../lib/rpc-sent-mailbox";
 import type { Env } from "../types";
 
 function addressListToString(
-	value: string | string[] | undefined,
+	value: EmailAddress | EmailAddress[] | undefined,
 ): string | null {
 	if (value == null) return null;
-	return (Array.isArray(value) ? value.join(", ") : value).toLowerCase();
+	const list = Array.isArray(value) ? value : [value];
+	return list
+		.map((a) => (typeof a === "string" ? a : a.email))
+		.join(", ")
+		.toLowerCase();
 }
 
 /**
@@ -40,7 +45,7 @@ async function saveRpcSendToSent(
 
 	const { messageId, outgoingMessageId } = generateMessageId(fromDomain);
 	const stub = getMailboxStub(env, mailboxId);
-	const toStr = addressListToString(message.to as string | string[]) ?? "";
+	const toStr = addressListToString(message.to) ?? "";
 
 	await stub.createEmail(
 		Folders.SENT,
@@ -49,8 +54,8 @@ async function saveRpcSendToSent(
 			subject: message.subject,
 			sender: fromEmail,
 			recipient: toStr,
-			cc: addressListToString(message.cc as string | string[] | undefined),
-			bcc: addressListToString(message.bcc as string | string[] | undefined),
+			cc: addressListToString(message.cc),
+			bcc: addressListToString(message.bcc),
 			date: new Date().toISOString(),
 			body: message.html || message.text || "",
 			in_reply_to: null,
