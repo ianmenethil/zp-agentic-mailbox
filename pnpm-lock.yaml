@@ -93,8 +93,8 @@ importers:
         specifier: 3.20.2
         version: 3.20.2
       '@zp-shared/emails':
-        specifier: https://cdn.zenithpayments.support/zp-shared/emails-0.1.5.tgz
-        version: https://cdn.zenithpayments.support/zp-shared/emails-0.1.5.tgz(react-dom@19.2.8(react@19.2.8))(react-email@6.9.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2))(react@19.2.8)
+        specifier: https://cdn.zenithpayments.support/zp-shared/emails-0.1.6.tgz
+        version: https://cdn.zenithpayments.support/zp-shared/emails-0.1.6.tgz(react-dom@19.2.8(react@19.2.8))(react-email@6.9.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2))(react@19.2.8)
       agents:
         specifier: ^0.21.0
         version: 0.21.0(@ai-sdk/react@4.0.86(react@19.2.8)(zod@4.4.3))(@babel/core@7.29.7(supports-color@10.2.2))(@babel/runtime@7.29.7)(@cloudflare/workers-types@5.20260827.1)(@modelcontextprotocol/client@2.0.0)(@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(supports-color@10.2.2)(zod@4.4.3))(@modelcontextprotocol/server@2.0.0)(ai@7.0.83(zod@4.4.3))(react@19.2.8)(rolldown@1.2.5)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))(zod@4.4.3)
@@ -2080,9 +2080,9 @@ packages:
   '@workflow/serde@4.1.0':
     resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
 
-  '@zp-shared/emails@https://cdn.zenithpayments.support/zp-shared/emails-0.1.5.tgz':
-    resolution: {integrity: sha512-nqKyCqb3Bi734aUBEySPP0wSTu/asJIbj+JvbjVETV7ZYIkSPOquTAXsQLo6z0hlQGAvLAPFT9jY8rs8YlUbJA==, tarball: https://cdn.zenithpayments.support/zp-shared/emails-0.1.5.tgz}
-    version: 0.1.5
+  '@zp-shared/emails@https://cdn.zenithpayments.support/zp-shared/emails-0.1.6.tgz':
+    resolution: {integrity: sha512-0H8N1vww8sATOHiqpgXV1AtEnVGcdw5yrEcX8ThKsiiOkIPziqe03XI3YOeoXcVQMSaWtfex4r6GgmoUf4R74Q==, tarball: https://cdn.zenithpayments.support/zp-shared/emails-0.1.6.tgz}
+    version: 0.1.6
     engines: {node: '>=22'}
     peerDependencies:
       react: ^19.0.0
@@ -5953,7 +5953,7 @@ snapshots:
 
   '@workflow/serde@4.1.0': {}
 
-  '@zp-shared/emails@https://cdn.zenithpayments.support/zp-shared/emails-0.1.5.tgz(react-dom@19.2.8(react@19.2.8))(react-email@6.9.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2))(react@19.2.8)':
+  '@zp-shared/emails@https://cdn.zenithpayments.support/zp-shared/emails-0.1.6.tgz(react-dom@19.2.8(react@19.2.8))(react-email@6.9.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@10.2.2))(react@19.2.8)':
     dependencies:
       dotenv: 17.4.2
       react: 19.2.8

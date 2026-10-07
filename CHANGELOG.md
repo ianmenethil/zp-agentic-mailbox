@@ -2,6 +2,9 @@
 
 Notable changes, newest first. Each entry is dated by its commit.
 
+## 2026-10-07
+- Upgraded the shared email package `@zp-shared/emails` from 0.1.5 to 0.1.6; the package now lives in the `ZP-Packages` repo and is published from there. Entry points and RPC send types are unchanged.
+
 ## 2026-09-30
 - Upgraded the shared email package `@zp-shared/emails` from 0.1.3 to 0.1.5; the RPC send types the mailer uses are unchanged.
 
