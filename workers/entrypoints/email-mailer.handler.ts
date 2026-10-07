@@ -1,9 +1,9 @@
 import type {
 	EmailAddress,
 	EmailMessage,
-	EmailRpcResult,
 	EmailRpcSendData,
-} from "@zp-shared/emails/send";
+	RpcResult,
+} from "@zp-shared/rpc";
 import { Folders } from "../../shared/folders";
 import { sendEmail } from "../email-sender";
 import {
@@ -71,7 +71,7 @@ export async function handleRpcSend(
 	env: Env,
 	message: EmailMessage,
 	allowedFrom: readonly string[] = DEFAULT_RPC_ALLOWED_FROM,
-): Promise<EmailRpcResult<EmailRpcSendData>> {
+): Promise<RpcResult<EmailRpcSendData>> {
 	try {
 		assertRpcSenderAllowed(message.from, allowedFrom);
 		if (!message.subject?.trim()) {
@@ -87,17 +87,14 @@ export async function handleRpcSend(
 
 		const fromEmail = normalizeFromEmail(message.from);
 		const result = await sendEmail(env.EMAIL, {
-			to: message.to as string | string[],
-			from: message.from as string | { email: string; name: string },
+			to: message.to,
+			from: message.from,
 			subject: message.subject,
 			html: message.html,
 			text: message.text,
-			cc: message.cc as string | string[] | undefined,
-			bcc: message.bcc as string | string[] | undefined,
-			replyTo: message.replyTo as
-				| string
-				| { email: string; name: string }
-				| undefined,
+			cc: message.cc,
+			bcc: message.bcc,
+			replyTo: message.replyTo,
 			headers: message.headers,
 		});
 

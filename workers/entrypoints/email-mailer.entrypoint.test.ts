@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { EmailMessage } from "@zp-shared/emails/send";
+import type { EmailMessage } from "@zp-shared/rpc";
 import type { Env } from "../types";
 import { handleRpcSend } from "./email-mailer.handler";
 
@@ -183,6 +183,35 @@ describe("handleRpcSend", () => {
 		assert.equal(saved[0]?.email.recipient, "alice@example.com");
 		assert.equal(saved[0]?.email.cc, "bob@example.com, carol@example.com");
 		assert.equal(saved[0]?.email.bcc, "dave@example.com");
+	});
+
+	it("hands object and mixed-array recipients to the send binding as bare or { email, name? } addresses", async () => {
+		const sent: unknown[] = [];
+		const env = makeEnv(async (message: unknown) => {
+			sent.push(message);
+			return { messageId: "msg_wire" };
+		});
+
+		const result = await handleRpcSend(env, {
+			...baseMessage,
+			to: { email: "alice@example.com", name: "Alice" },
+			cc: ["bob@example.com", { email: "carol@example.com", name: "Carol" }],
+			bcc: { email: "dave@example.com" },
+			replyTo: { email: "help@zenithpayments.support" },
+		});
+
+		assert.deepEqual(result, { ok: true, data: { messageId: "msg_wire" } });
+		assert.deepEqual(sent, [
+			{
+				to: { email: "alice@example.com", name: "Alice" },
+				from: { email: "noreply@zenithpayments.support", name: "ZP" },
+				subject: "Hello",
+				html: "<p>Hi</p>",
+				cc: ["bob@example.com", { email: "carol@example.com", name: "Carol" }],
+				bcc: { email: "dave@example.com" },
+				replyTo: { email: "help@zenithpayments.support" },
+			},
+		]);
 	});
 
 	it("stores null cc and bcc in Sent when they are omitted", async () => {

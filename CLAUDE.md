@@ -42,5 +42,5 @@ Production fails closed if the `POLICY_AUD` / `TEAM_DOMAIN` secrets aren't set (
 ## Gotchas
 
 - `tsconfig.cloudflare.json` sets `noImplicitAny: false`, weaker than the root `tsconfig.json`'s `strict: true` — applies to `app/**`, `workers/**`, `shared/**`.
-- `@zp-shared/emails` is installed from a private CDN tarball URL (not the npm registry) — `pnpm install --frozen-lockfile` depends on that URL staying up.
+- `@zp-shared/emails` and `@zp-shared/rpc` are installed from private CDN tarball URLs (not the npm registry) — `pnpm install --frozen-lockfile` depends on those URLs staying up. The mailer contract (`EmailRpcContract`, `EmailMessage`, `EmailAddress`, `RpcResult`) lives in `@zp-shared/rpc`; `@zp-shared/emails` (0.2.0+) only has it as a peer dependency, which is why rpc is a direct dependency here.
 - Only three RPC test files exist (`rpc-send-policy.test.ts`, `rpc-sent-mailbox.test.ts`, `email-mailer.entrypoint.test.ts`), all covering the RPC send-policy/Sent-folder feature. `MailboxDO`, `EmailAgent`, `EmailMCP`, and the frontend have no automated tests.

@@ -10,15 +10,36 @@
  * See: https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
  */
 
+import type { EmailAddress } from "@zp-shared/rpc";
+
+/**
+ * The binding takes a bare address or `{ email, name? }`. Leave `name` off
+ * instead of passing `name: undefined`.
+ */
+function toBindingAddress(
+	addr: EmailAddress,
+): string | { email: string; name?: string } {
+	if (typeof addr === "string") return addr;
+	return addr.name === undefined
+		? { email: addr.email }
+		: { email: addr.email, name: addr.name };
+}
+
+function toBindingAddresses(value: EmailAddress | EmailAddress[]) {
+	return Array.isArray(value)
+		? value.map(toBindingAddress)
+		: toBindingAddress(value);
+}
+
 export interface SendEmailParams {
-	to: string | string[];
-	from: string | { email: string; name: string };
+	to: EmailAddress | EmailAddress[];
+	from: EmailAddress;
 	subject: string;
 	html?: string;
 	text?: string;
-	cc?: string | string[];
-	bcc?: string | string[];
-	replyTo?: string | { email: string; name: string };
+	cc?: EmailAddress | EmailAddress[];
+	bcc?: EmailAddress | EmailAddress[];
+	replyTo?: EmailAddress;
 	attachments?: {
 		content: string; // base64 encoded
 		filename: string;
@@ -42,16 +63,16 @@ export async function sendEmail(
 	params: SendEmailParams,
 ): Promise<{ messageId: string }> {
 	const message: Record<string, unknown> = {
-		to: params.to,
-		from: params.from,
+		to: toBindingAddresses(params.to),
+		from: toBindingAddress(params.from),
 		subject: params.subject,
 	};
 
 	if (params.html) message.html = params.html;
 	if (params.text) message.text = params.text;
-	if (params.cc) message.cc = params.cc;
-	if (params.bcc) message.bcc = params.bcc;
-	if (params.replyTo) message.replyTo = params.replyTo;
+	if (params.cc) message.cc = toBindingAddresses(params.cc);
+	if (params.bcc) message.bcc = toBindingAddresses(params.bcc);
+	if (params.replyTo) message.replyTo = toBindingAddress(params.replyTo);
 
 	if (params.headers && Object.keys(params.headers).length > 0) {
 		message.headers = params.headers;
@@ -67,6 +88,8 @@ export async function sendEmail(
 		}));
 	}
 
-	const result = await binding.send(message as any);
+	// The generated binding types require `name` on object addresses; the
+	// documented API makes it optional, so the payload is cast through unknown.
+	const result = await binding.send(message as unknown as EmailMessageBuilder);
 	return { messageId: result.messageId };
 }
