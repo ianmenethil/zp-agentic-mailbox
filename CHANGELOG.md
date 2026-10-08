@@ -3,6 +3,7 @@
 Notable changes, newest first. Each entry is dated by its commit.
 
 ## 2026-10-08
+- Moved `@zp-shared/rpc` from 0.4.0 to 0.5.0. The new version only adds a contract for the Status Server's data feed, which this Worker does not use, so nothing here changes.
 - Fixed the Sent copy of an RPC send when a recipient is written as `{ email, name }` instead of a plain address: the copy failed (single recipient) or listed `[object object]` (several); it now files the recipient's email address.
 - Fixed the send itself for the same recipients: an RPC send with a `{ email, name }` recipient (or a mixed list of plain and object addresses) in `to`, `cc`, `bcc`, `from` or `replyTo` is now passed to the Cloudflare send binding as a plain address or `{ email, name }` (`name` left out when not given), where before the objects were forced through a string cast and reached the binding unchanged.
 - Replaced `@zp-shared/emails` with `@zp-shared/rpc` 0.4.0 as the direct dependency (nothing here imports the emails package any more, so it was removed rather than upgraded to 0.2.0). The mailer contract (`EmailRpcContract`, `EmailMessage`, `EmailAddress`, `EmailRpcSendData`) is now imported from `@zp-shared/rpc`, and the result type is its shared `RpcResult<T>` (was `EmailRpcResult<T>`); the shape on the wire is unchanged.
