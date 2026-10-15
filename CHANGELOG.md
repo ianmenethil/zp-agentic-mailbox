@@ -2,6 +2,10 @@
 
 Notable changes, newest first. Each entry is dated by its commit.
 
+## 2026-10-15
+- Moved `@zp-shared/rpc` from 0.5.0 to 0.6.3. The email types used here are unchanged; the environment types became uppercase (`SBX`, `UAT`, `PRD`), which this Worker does not use.
+- Moved every other dependency to its latest version (React 19.3, React Router 8.4, TipTap 3.32, agents 0.28, wrangler 4.151, zod 4.6 and others). TypeScript stays on 6.0.3 because `typescript-eslint` does not support TypeScript 7 yet.
+
 ## 2026-10-08
 - Merged the repeated send steps of the reply and forward endpoints into one shared function in `workers/routes/reply-forward.ts`. Replies and forwards behave exactly as before; only the duplicated code is gone.
 - Moved `@zp-shared/rpc` from 0.4.0 to 0.5.0. The new version only adds a contract for the Status Server's data feed, which this Worker does not use, so nothing here changes.
