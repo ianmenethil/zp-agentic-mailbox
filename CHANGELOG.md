@@ -2,6 +2,10 @@
 
 Notable changes, newest first. Each entry is dated by its commit.
 
+## 2026-11-02
+- Moved `@zp-shared/rpc` from 0.6.3 to 0.7.0. The new version only changes the playground contract, which this Worker does not use; the email types are unchanged.
+- Updated dependencies within their ranges (React 19.3.1, React Router 8.5.1, Hono 4.13.16, Kumo 2.16, wrangler 4.156, ESLint 10.14, knip 6.44 and others). TipTap (3.32.0) and `@modelcontextprotocol/sdk` (1.32.1) stay on their exact pins, `agents` stays on 0.28.1, and TypeScript stays on 6.0.3 because `typescript-eslint` does not support TypeScript 7 yet.
+
 ## 2026-10-15
 - Moved `@zp-shared/rpc` from 0.5.0 to 0.6.3. The email types used here are unchanged; the environment types became uppercase (`SBX`, `UAT`, `PRD`), which this Worker does not use.
 - Moved every other dependency to its latest version (React 19.3, React Router 8.4, TipTap 3.32, agents 0.28, wrangler 4.151, zod 4.6 and others). TypeScript stays on 6.0.3 because `typescript-eslint` does not support TypeScript 7 yet.
