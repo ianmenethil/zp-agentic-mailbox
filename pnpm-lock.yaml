@@ -251,8 +251,8 @@ importers:
         specifier: 3.32.0
         version: 3.32.0
       '@zp-shared/rpc':
-        specifier: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.0.tgz
-        version: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.0.tgz
+        specifier: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz
+        version: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz
       agents:
         specifier: ^0.28.1
         version: 0.28.1(@ai-sdk/provider@4.0.35)(@ai-sdk/react@4.0.163(react@19.3.1)(zod@4.6.7))(@babel/core@8.0.10)(@babel/runtime@8.0.10)(@modelcontextprotocol/client@2.3.1)(@modelcontextprotocol/sdk@1.32.1(@cfworker/json-schema@4.1.4)(supports-color@10.2.2)(zod@4.6.7))(@modelcontextprotocol/server@2.3.1)(ai@7.0.159(zod@4.6.7))(react@19.3.1)(rolldown@1.2.16)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(zod@4.6.7)
@@ -2027,9 +2027,9 @@ packages:
   '@workflow/serde@4.1.0':
     resolution: {integrity: sha512-pav4F2BoirECWR7Nf1TKt+2eETcBj7jj4cBefQ8VXQCA6NPkaKeLfj/zMgi+3zYV5ZIBT4GuUiphsj0/b9hPQQ==}
 
-  '@zp-shared/rpc@https://cdn.zenithpayments.support/zp-shared/rpc-0.7.0.tgz':
-    resolution: {integrity: sha512-URJBgmu/f8u582UdTOtgJVEe8yfn0lQZSe6i9y31+cqFRpw4If28kJwnp1cN/bkV4V7aoCKFV+XRe3ZQFnK8uw==, tarball: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.0.tgz}
-    version: 0.7.0
+  '@zp-shared/rpc@https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz':
+    resolution: {integrity: sha512-CqRc9sgRA2JjntWu1PHL9wSl5QXHSalYxlVGJWoSt965fZff81qzrkOnwqovDk4W9x4jgKRjT4U5/nQy3K/51Q==, tarball: https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz}
+    version: 0.7.2
     engines: {node: '>=22'}
 
   accepts@2.0.0:
@@ -5472,7 +5472,7 @@ snapshots:
 
   '@workflow/serde@4.1.0': {}
 
-  '@zp-shared/rpc@https://cdn.zenithpayments.support/zp-shared/rpc-0.7.0.tgz': {}
+  '@zp-shared/rpc@https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz': {}
 
   accepts@2.0.0:
     dependencies:
