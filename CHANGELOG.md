@@ -2,6 +2,10 @@
 
 Notable changes, newest first. Each entry is dated by its commit.
 
+## 2026-11-20
+- The Worker now logs through `@zp-shared/logger`, like the other Zenith Workers: one JSON entry per request (`http_request`) and one per event with a snake_case name and its details in fields (`email_received`, `email_forward_failed`, `rpc_email_sent`, `auto_draft_skipped` and others). Every `console.*` call in `workers/` and the server render error handler was replaced; mail addresses are no longer written into log text.
+- Turned off Cloudflare's automatic per-call log lines, so the Worker's own entries are the only ones.
+
 ## 2026-11-02
 - Moved `@zp-shared/rpc` from 0.6.3 to 0.7.0. The new version only changes the playground contract, which this Worker does not use; the email types are unchanged.
 - Updated dependencies within their ranges (React 19.3.1, React Router 8.5.1, Hono 4.13.16, Kumo 2.16, wrangler 4.156, ESLint 10.14, knip 6.44 and others). TipTap (3.32.0) and `@modelcontextprotocol/sdk` (1.32.1) stay on their exact pins, `agents` stays on 0.28.1, and TypeScript stays on 6.0.3 because `typescript-eslint` does not support TypeScript 7 yet.

@@ -33,6 +33,12 @@ Architecture: Browser (React SPA + Agent panel) → Hono Worker (API + SSR, `wor
 
 Other Workers can send mail via a service binding to `EmailMailerEntrypoint` (`workers/entrypoints/`, exported from `workers/app.ts`), bypassing HTTP/Access entirely. Sender allowlist enforced in `workers/lib/rpc-send-policy.ts` — separate from the UI's `validateSender()` rules. Successful RPC sends are copied into Sent on the from-address mailbox for allowlisted system senders (`no-reply@`, `noreply@`); other senders use their mailbox when provisioned, else `DEFAULT_MAILBOX`.
 
+## Logging
+
+All logging goes through `@zp-shared/logger` (core entry: `appLogger`, `errorFields`); never `console.*` and never a direct `loglayer`, `pino`, `winston`, `consola` or `@sentry/*` import. `workers/app.ts` calls `configureAppLogger("info", { consoleSeverity: true })` once and registers `createRequestLoggerMiddleware({ bodies: "none" })` first on the Hono app, which writes one `http_request` entry per request. Everything else is `appLogger.<level>("snake_case_event", { fields })`: the event name says what happened and details go in fields. Levels: a normal event is `info`, a problem the code recovers from is `warn`, a failure is `error`. Put `...errorFields(e)` in a failure's fields. Never log a mail address, subject or body: a mailbox id is an address, so use message ids and counts.
+
+`observability.logs.invocation_logs` is `false` in `wrangler.jsonc`: Cloudflare's own per-call lines (`MailboxDO.jsrpc`, `EmailMailerEntrypoint.jsrpc`, one per inbound mail) are not events, so the Worker writes `email_received`, `rpc_email_sent` and the failure events itself.
+
 ## Security model — read before touching auth
 
 Cloudflare Access JWT is the **single trust boundary**. Any user passing the Access policy can access **every mailbox**, including via `/mcp` — there is no per-mailbox authorization. This is an intentional design choice per the README, not a bug.
