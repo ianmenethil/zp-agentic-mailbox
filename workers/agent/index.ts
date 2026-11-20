@@ -9,6 +9,7 @@ import {
 	convertToModelMessages,
 	stepCountIs,
 } from "ai";
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { createWorkersAI } from "workers-ai-provider";
 import { z } from "zod";
 import type { EmailFull, EmailMetadata } from "../lib/schemas";
@@ -312,7 +313,7 @@ export class EmailAgent extends AIChatAgent<any> {
 					headers: { "Content-Type": "application/json" },
 				});
 			} catch (e) {
-				console.error("onNewEmail handler failed:", (e as Error).message);
+				appLogger.error("agent_new_email_failed", { ...errorFields(e) });
 				return new Response(
 					JSON.stringify({ error: (e as Error).message }),
 					{ status: 500, headers: { "Content-Type": "application/json" } },
@@ -349,7 +350,7 @@ export class EmailAgent extends AIChatAgent<any> {
 			if (email?.body) {
 				const isInjection = await isPromptInjection(env.AI, email.body);
 				if (isInjection) {
-					console.warn("Skipping auto-draft due to detected prompt injection:", emailData.emailId);
+					appLogger.warn("auto_draft_skipped", { reason: "prompt_injection", email_id: emailData.emailId });
 					
 					// Log to agent chat so the user knows why it skipped
 					const newMessages = [
@@ -397,7 +398,7 @@ export class EmailAgent extends AIChatAgent<any> {
 			if (threadContext) {
 				const threadInjection = await isPromptInjection(env.AI, threadContext);
 				if (threadInjection) {
-					console.warn("Skipping auto-draft due to prompt injection in thread context:", emailData.threadId);
+					appLogger.warn("auto_draft_skipped", { reason: "prompt_injection_in_thread", email_id: emailData.emailId, thread_id: emailData.threadId });
 					const newMessages = [
 						{
 							id: crypto.randomUUID(),
@@ -420,7 +421,7 @@ export class EmailAgent extends AIChatAgent<any> {
 			}
 		}
 		} catch (e) {
-			console.warn("Pre-read failed, agent will use tools:", (e as Error).message);
+			appLogger.warn("agent_pre_read_failed", { ...errorFields(e) });
 		}
 
 		let autoPrompt = `A new email just arrived. Draft an appropriate response using draft_reply.
@@ -548,7 +549,7 @@ Based on the email content and thread context above, draft a reply using draft_r
 
 			return { status: "draft_generated", text: result.text };
 		} catch (e) {
-			console.error("Auto-draft failed:", (e as Error).message);
+			appLogger.error("auto_draft_failed", { email_id: emailData.emailId, ...errorFields(e) });
 			return { status: "error", error: (e as Error).message };
 		}
 	}

@@ -3,6 +3,7 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 import type { Context } from "hono";
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { sendEmail } from "../email-sender";
 import { storeAttachments } from "../lib/attachments";
 import type { EmailFull } from "../lib/schemas";
@@ -110,7 +111,7 @@ async function sendFromOriginal(c: AppContext, kind: "reply" | "forward") {
 			})),
 			headers: chain ? buildThreadingHeaders(chain.originalMsgId, chain.references) : undefined,
 		}).catch((e) => {
-			console.error(`Deferred ${kind} delivery failed:`, (e as Error).message);
+			appLogger.error("email_delivery_failed", { kind, ...errorFields(e) });
 		}),
 	);
 

@@ -6,7 +6,12 @@
 	"workers_dev": true,
 	"preview_urls": true,
 	"observability": {
-		"enabled": true
+		"enabled": true,
+		"logs": {
+			"enabled": true,
+			// Off: Cloudflare's per-call lines (`MailboxDO.jsrpc`, `EmailMailerEntrypoint.jsrpc`, one per inbound mail) are not events. The Worker logs its own events through @zp-shared/logger.
+			"invocation_logs": false
+		}
 	},
 	"compatibility_flags": [
 		"nodejs_compat"

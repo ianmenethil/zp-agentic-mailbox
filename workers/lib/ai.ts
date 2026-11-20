@@ -9,6 +9,7 @@
  * - verifyDraft: reviews draft email bodies and removes agent/system artifacts.
  */
 
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { stripHtmlToText, textToHtml } from "./email-helpers";
 
 // ── Prompt Injection Scanner ───────────────────────────────────────
@@ -42,14 +43,9 @@ export async function isPromptInjection(ai: Ai, bodyHtml: string | null | undefi
 
 		const result = (response?.response || "NO").trim().toUpperCase();
 		
-		if (result.includes("YES")) {
-			console.warn("Prompt injection detected in incoming email, blocking auto-draft");
-			return true;
-		}
-		
-		return false;
+		return result.includes("YES");
 	} catch (e) {
-		console.error("Prompt injection scanner failed, skipping auto-draft:", (e as Error).message);
+		appLogger.error("prompt_injection_scan_failed", { ...errorFields(e) });
 		// Fail closed: treat scanner failures as potential injection to avoid
 		// auto-drafting replies to emails we couldn't verify.
 		// The email is still stored in the inbox — only auto-draft is skipped.
@@ -165,10 +161,10 @@ export async function verifyDraft(ai: Ai, body: string): Promise<string> {
 		// This threshold balances between catching real artifacts and
 		// preventing the verifier from gutting legitimate emails.
 		if (cleanedTrimmed.length < replyText.trim().length * 0.5) {
-			console.warn(
-				"Draft verifier removed >50% of content, falling back to original.",
-				`Original: ${replyText.trim().length} chars, Cleaned: ${cleanedTrimmed.length} chars`,
-			);
+			appLogger.warn("draft_verifier_fallback", {
+				original_chars: replyText.trim().length,
+				cleaned_chars: cleanedTrimmed.length,
+			});
 			return body;
 		}
 
@@ -182,7 +178,7 @@ export async function verifyDraft(ai: Ai, body: string): Promise<string> {
 			? `${cleanedTrimmed}\n\n${quotedBlock}`
 			: cleanedTrimmed;
 	} catch (e) {
-				console.error("AI failed — returns empty body, callers may save blank draft:", (e as Error).message);
+		appLogger.error("draft_verifier_failed", { ...errorFields(e) });
 		return "";
 	}
 }

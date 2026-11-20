@@ -3,6 +3,7 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 import { routeAgentRequest } from "agents";
+import { appLogger, configureAppLogger, createRequestLoggerMiddleware, errorFields } from "@zp-shared/logger";
 import { Hono } from "hono";
 import { jwtVerify, createRemoteJWKSet } from "jose";
 import {
@@ -18,6 +19,9 @@ export { MailboxDO } from "./durableObject";
 export { EmailAgent } from "./agent";
 export { EmailMCP } from "./mcp";
 export { EmailMailerEntrypoint } from "./entrypoints/email-mailer.entrypoint";
+
+// The console method sets the severity, so a warn or error entry is not read as info. Invocation logs are off in wrangler.jsonc: the app writes the events itself.
+configureAppLogger("info", { consoleSeverity: true });
 
 export const cloudflareContext = createContext<{
 	env: Env;
@@ -42,6 +46,9 @@ function getAccessUrls(teamDomain: string) {
 
 // Main app that wraps the API and adds React Router fallback
 const app = new Hono<{ Bindings: Env }>();
+
+// One `http_request` entry per request, ahead of Access so a rejected request is logged too. Bodies stay out: they are mail.
+app.use("*", createRequestLoggerMiddleware({ bodies: "none" }));
 
 // Cloudflare Access JWT validation middleware (production only)
 app.use("*", async (c, next) => {
@@ -122,7 +129,7 @@ export default {
 		try {
 			await receiveEmail(event, env, ctx);
 		} catch (e) {
-			console.error("Failed to process incoming email:", (e as Error).message, (e as Error).stack);
+			appLogger.error("email_receive_failed", { ...errorFields(e) });
 			// Re-throw so Cloudflare's email routing can retry delivery or bounce the message.
 			// Swallowing the error would silently drop the email.
 			throw e;

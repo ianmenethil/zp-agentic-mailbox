@@ -5,6 +5,7 @@
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import PostalMime from "postal-mime";
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { z } from "zod";
 import { sendEmail } from "./email-sender";
 import { storeAttachments, type StoredAttachment } from "./lib/attachments";
@@ -211,7 +212,7 @@ app.post("/api/v1/mailboxes/:mailboxId/emails", async (c: AppContext) => {
 			to, cc, bcc, from, subject, html, text,
 			attachments: attachments?.map((att) => ({ content: att.content, filename: att.filename, type: att.type, disposition: att.disposition || "attachment", contentId: att.contentId })),
 			...(in_reply_to ? { headers: buildThreadingHeaders(in_reply_to, references || []) } : {}),
-		}).catch((e) => console.error("Deferred email delivery failed:", (e as Error).message)),
+		}).catch((e) => appLogger.error("email_delivery_failed", { kind: "send", ...errorFields(e) })),
 	);
 	return c.json({ id: messageId, status: "sent" }, 202);
 });
@@ -374,7 +375,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
 		mailboxId = defaultMailbox;
 	} else if (allowedAddresses.length > 0) {
 		mailboxId = allRecipients.find((addr) => allowedAddresses.includes(addr));
-		if (!mailboxId) { console.log(`Ignoring email: no recipient matches EMAIL_ADDRESSES.`); return; }
+		if (!mailboxId) { appLogger.info("email_ignored", { reason: "no_recipient_match" }); return; }
 	} else { mailboxId = allRecipients[0]; }
 	if (!mailboxId) throw new Error("received email with no valid recipient address");
 
@@ -382,7 +383,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
 	const mailboxKey = `mailboxes/${mailboxId}.json`;
 	if (!(await env.BUCKET.head(mailboxKey))) {
 		if (!defaultMailbox) {
-			console.log(`Ignoring email for ${mailboxId}: mailbox does not exist`);
+			appLogger.info("email_ignored", { reason: "mailbox_missing" });
 			return;
 		}
 		// Auto-provision the catch-all mailbox on first delivery.
@@ -396,7 +397,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
 		await env.BUCKET.put(mailboxKey, JSON.stringify(defaultSettings));
 		const bootstrap = env.MAILBOX.get(env.MAILBOX.idFromName(mailboxId));
 		await bootstrap.getFolders();
-		console.log(`Auto-created catch-all mailbox ${mailboxId}`);
+		appLogger.info("mailbox_auto_created", {});
 	}
 
 	const stub = env.MAILBOX.get(env.MAILBOX.idFromName(mailboxId));
@@ -443,9 +444,11 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
 		try {
 			await event.forward(forwardTo);
 		} catch (e) {
-			console.error(`Forward to ${forwardTo} failed:`, (e as Error).message);
+			appLogger.error("email_forward_failed", { email_id: messageId, ...errorFields(e) });
 		}
 	}
+
+	appLogger.info("email_received", { email_id: messageId, attachment_count: attachmentData.length, forwarded: Boolean(forwardTo) });
 
 	if (env.AUTO_DRAFT !== "true") return;
 
@@ -453,7 +456,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
 	ctx.waitUntil(agentStub.fetch(new Request("https://agents/onNewEmail", {
 		method: "POST", headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ mailboxId, emailId: messageId, sender: (parsedEmail.from?.address || "").toLowerCase(), subject: parsedEmail.subject || "", threadId }),
-	})).catch((e) => console.error("Auto-draft trigger failed:", (e as Error).message)));
+	})).catch((e) => appLogger.error("auto_draft_trigger_failed", { email_id: messageId, ...errorFields(e) })));
 }
 
 export { app, receiveEmail };

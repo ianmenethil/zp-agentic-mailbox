@@ -5,6 +5,7 @@
 import type { EntryContext, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
 import { isbot } from "isbot";
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { renderToReadableStream } from "react-dom/server";
 
 export default async function handleRequest(
@@ -26,7 +27,7 @@ export default async function handleRequest(
         // errors encountered during initial shell rendering since they'll
         // reject and get logged in handleDocumentRequest.
         if (shellRendered) {
-          console.error(error);
+          appLogger.error("ssr_render_failed", { ...errorFields(error) });
         }
       },
     }

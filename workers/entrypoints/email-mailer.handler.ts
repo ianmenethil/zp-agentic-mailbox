@@ -4,6 +4,7 @@ import type {
 	EmailRpcSendData,
 	RpcResult,
 } from "@zp-shared/rpc";
+import { appLogger, errorFields } from "@zp-shared/logger";
 import { Folders } from "../../shared/folders";
 import { sendEmail } from "../email-sender";
 import {
@@ -101,16 +102,20 @@ export async function handleRpcSend(
 		try {
 			await saveRpcSendToSent(env, message, fromEmail, result.messageId);
 		} catch (e) {
-			console.error(
-				"RPC send succeeded but Sent copy failed:",
-				e instanceof Error ? e.message : e,
-			);
+			appLogger.error("rpc_sent_copy_failed", {
+				message_id: result.messageId,
+				...errorFields(e),
+			});
 		}
 
+		appLogger.info("rpc_email_sent", { message_id: result.messageId });
 		return { ok: true, data: { messageId: result.messageId } };
 	} catch (e) {
 		const detail = e instanceof Error ? e.message : String(e);
 		const status = /not allowed/i.test(detail) ? 403 : 502;
+		// The not-allowed message carries the sender's address, so only the reason is logged for it.
+		if (status === 403) appLogger.warn("rpc_email_rejected", { status, reason: "sender_not_allowed" });
+		else appLogger.error("rpc_email_failed", { status, ...errorFields(e) });
 		return { ok: false, status, detail };
 	}
 }

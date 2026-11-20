@@ -14,6 +14,7 @@
  * are reused directly — this module covers the remaining shared operations.
  */
 
+import { appLogger, errorFields } from "@zp-shared/logger";
 import type { EmailFull } from "./schemas";
 import {
 	getMailboxStub,
@@ -442,7 +443,7 @@ export async function toolSendReply(
 			headers: buildThreadingHeaders(originalMsgId, references),
 		});
 	} catch (e) {
-		console.error("Email send failed:", (e as Error).message);
+		appLogger.error("email_send_failed", { tool: "send_reply", ...errorFields(e) });
 		return { error: `Failed to send reply: ${(e as Error).message}` };
 	}
 
@@ -506,7 +507,7 @@ export async function toolSendEmail(
 			html: sanitizedBody,
 		});
 	} catch (e) {
-		console.error("Email send failed:", (e as Error).message);
+		appLogger.error("email_send_failed", { tool: "send_email", ...errorFields(e) });
 		return { error: `Failed to send email: ${(e as Error).message}` };
 	}
 
