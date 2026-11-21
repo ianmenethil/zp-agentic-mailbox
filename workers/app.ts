@@ -4,6 +4,7 @@
 
 import { routeAgentRequest } from "agents";
 import { appLogger, configureAppLogger, createRequestLoggerMiddleware, errorFields } from "@zp-shared/logger";
+import { createRequestIdMiddleware } from "@zp-shared/hono-app/request-id";
 import { Hono } from "hono";
 import { jwtVerify, createRemoteJWKSet } from "jose";
 import {
@@ -46,6 +47,9 @@ function getAccessUrls(teamDomain: string) {
 
 // Main app that wraps the API and adds React Router fallback
 const app = new Hono<{ Bindings: Env }>();
+
+// The request id comes first so the logger writes it as `trace_id` and every response, rejections included, carries it.
+app.use("*", createRequestIdMiddleware());
 
 // One `http_request` entry per request, ahead of Access so a rejected request is logged too. Bodies stay out: they are mail.
 app.use("*", createRequestLoggerMiddleware({ bodies: "none" }));
