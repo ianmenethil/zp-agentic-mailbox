@@ -3,6 +3,7 @@
 Notable changes, newest first. Each entry is dated by its commit.
 
 ## 2026-11-21
+- Moved `@zp-shared/logger` from 0.8.16 to 0.8.17. Request log entries now also record the W3C `traceparent` header in their `zp` field; nothing else changes.
 - Every request has an id, as in the other Zenith Workers: a valid inbound `x-zp-request-id` header is reused, otherwise one is generated. It is the `trace_id` of the request's log entry and the `x-zp-request-id` header of every response. It comes from `@zp-shared/hono-app` 0.4.0, which needs `@zp-shared/errors` and `hono-problem-details` as peers.
 
 ## 2026-11-20
