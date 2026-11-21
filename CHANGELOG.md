@@ -2,6 +2,9 @@
 
 Notable changes, newest first. Each entry is dated by its commit.
 
+## 2026-11-21
+- Every request has an id, as in the other Zenith Workers: a valid inbound `x-zp-request-id` header is reused, otherwise one is generated. It is the `trace_id` of the request's log entry and the `x-zp-request-id` header of every response. It comes from `@zp-shared/hono-app` 0.4.0, which needs `@zp-shared/errors` and `hono-problem-details` as peers.
+
 ## 2026-11-20
 - The Worker now logs through `@zp-shared/logger`, like the other Zenith Workers: one JSON entry per request (`http_request`) and one per event with a snake_case name and its details in fields (`email_received`, `email_forward_failed`, `rpc_email_sent`, `auto_draft_skipped` and others). Every `console.*` call in `workers/` and the server render error handler was replaced; mail addresses are no longer written into log text.
 - Turned off Cloudflare's automatic per-call log lines, so the Worker's own entries are the only ones.
