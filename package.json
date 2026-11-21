@@ -75,7 +75,7 @@
 		"@tiptap/starter-kit": "3.32.0",
 		"@zp-shared/errors": "https://cdn.zenithpayments.support/zp-shared/errors-0.1.2.tgz",
 		"@zp-shared/hono-app": "https://cdn.zenithpayments.support/zp-shared/hono-app-0.4.0.tgz",
-		"@zp-shared/logger": "https://cdn.zenithpayments.support/zp-shared/logger-0.8.16.tgz",
+		"@zp-shared/logger": "https://cdn.zenithpayments.support/zp-shared/logger-0.8.17.tgz",
 		"@zp-shared/rpc": "https://cdn.zenithpayments.support/zp-shared/rpc-0.7.2.tgz",
 		"agents": "^0.28.1",
 		"ai": "^7.0.159",
